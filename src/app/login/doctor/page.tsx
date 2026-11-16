@@ -73,10 +73,10 @@ export default function DoctorLoginPage() {
           <button
             type="button"
             onClick={handleQuickDemoLogin}
-            className="w-full mb-6 p-3 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-left transition-all flex items-center justify-between group"
+            className="w-full mb-6 min-h-[48px] p-3 rounded-2xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-left transition-all flex items-center justify-between group cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
+              <div className="p-2 rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
@@ -103,51 +103,51 @@ export default function DoctorLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Doctor ID */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 डॉक्टर आईडी / ईमेल (Doctor ID / Email)
               </label>
               <div className="relative">
-                <Award className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Award className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={doctorId}
                   onChange={(e) => setDoctorId(e.target.value)}
                   placeholder="उदा. DOC-7842"
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             {/* Doctor Name */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 चिकित्सक का नाम (Doctor Full Name)
               </label>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <User className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={doctorName}
                   onChange={(e) => setDoctorName(e.target.value)}
                   placeholder="उदा. Dr. Rajesh Sharma, MD"
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             {/* Specialty */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 विशेषज्ञता / विभाग (Department & Specialty)
               </label>
               <div className="relative">
-                <Stethoscope className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Stethoscope className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <select
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 >
                   <option value="General & Internal Medicine">General & Internal Medicine (जनरल फिजिशियन)</option>
                   <option value="Pediatrics (शिशु रोग)">Pediatrics (शिशु रोग विशेषज्ञ)</option>
@@ -160,17 +160,17 @@ export default function DoctorLoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 पासवर्ड (Password)
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Lock className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function DoctorLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-10 mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+              className="w-full min-h-[48px] mt-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isSubmitting ? "लॉगिन हो रहा है..." : "डॉक्टर पोर्टल में प्रवेश करें"}</span>
               <ArrowRight className="w-4 h-4" />
@@ -190,9 +190,9 @@ export default function DoctorLoginPage() {
             <span className="text-slate-500">क्या आप स्वास्थ्य केंद्र ऑपरेटर हैं?</span>
             <Link
               href="/login/kiosk"
-              className="font-semibold text-emerald-600 hover:text-emerald-500 flex items-center gap-1"
+              className="min-h-[44px] px-2 py-1 font-semibold text-emerald-600 hover:text-emerald-500 flex items-center gap-1.5"
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="w-4 h-4" />
               <span>कियोस्क लॉगिन →</span>
             </Link>
           </div>

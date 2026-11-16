@@ -414,29 +414,29 @@ export default function HealthStationDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans overflow-x-hidden w-full max-w-full">
       {/* Top Health Station Banner */}
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 w-full">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold text-slate-900">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
               {user.stationOrDept || "स्वास्थ्य केंद्र"} (Health Station)
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 mt-0.5">
               ऑपरेटर: {user.name} • प्राथमिक स्वास्थ्य परामर्श व डिजिटल रजिस्ट्रेशन
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleTriggerSync}
               disabled={isSyncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all"
+              className="flex-1 sm:flex-initial min-h-[44px] sm:min-h-[38px] flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-xs font-semibold shadow-sm transition-all cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
               <span>{isSyncing ? "सिंक हो रहा है..." : "डेटा सिंक करें"}</span>
               {queuedCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-emerald-800 text-white rounded-full text-[10px]">
+                <span className="ml-1 px-1.5 py-0.5 bg-emerald-800 text-white rounded-full text-[10px]">
                   {queuedCount}
                 </span>
               )}
@@ -444,14 +444,14 @@ export default function HealthStationDashboard() {
 
             <button
               onClick={handleSeedDemoData}
-              className="px-2.5 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200"
+              className="min-h-[44px] sm:min-h-[38px] px-3 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors cursor-pointer"
             >
               + डेमो डेटा
             </button>
 
             <button
               onClick={handleClearDatabase}
-              className="px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-rose-600 rounded-lg"
+              className="min-h-[44px] sm:min-h-[38px] px-3 py-2 text-xs font-medium text-slate-500 hover:text-rose-600 rounded-xl transition-colors cursor-pointer"
               title="Clear Records"
             >
               रीसेट
@@ -460,18 +460,18 @@ export default function HealthStationDashboard() {
         </div>
 
         {syncFeedback && (
-          <div className="mt-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1 text-center">
+          <div className="mt-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5 text-center">
             {syncFeedback}
           </div>
         )}
       </div>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 flex-1 flex flex-col gap-5">
-        {/* Simplified 2-Card Metrics Row (Removed Inner-Working Technical Cards) */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 flex-1 flex flex-col gap-5 overflow-x-hidden">
+        {/* Simplified Metrics Row: Stack on mobile, 3-cols on desktop */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-3.5">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl shrink-0">
               <Users className="w-5 h-5" />
             </div>
             <div>
@@ -480,8 +480,8 @@ export default function HealthStationDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-3.5">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl shrink-0">
               <Clock className="w-5 h-5" />
             </div>
             <div>
@@ -490,8 +490,8 @@ export default function HealthStationDashboard() {
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-3.5">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
@@ -519,10 +519,10 @@ export default function HealthStationDashboard() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmitPatient} className="space-y-3.5">
+            <form onSubmit={handleSubmitPatient} className="space-y-4">
               {/* Full Name */}
               <div>
-                <label htmlFor={`${formId}-name`} className="block text-xs font-semibold text-slate-700 mb-1">
+                <label htmlFor={`${formId}-name`} className="block text-xs font-semibold text-slate-700 mb-1.5">
                   मरीज का नाम (Name) <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -532,14 +532,14 @@ export default function HealthStationDashboard() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="उदा. शांति देवी"
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                  className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                 />
               </div>
 
-              {/* Age & Gender */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Age & Gender - Stacks on mobile, 2-cols on tablet/desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label htmlFor={`${formId}-age`} className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor={`${formId}-age`} className="block text-xs font-semibold text-slate-700 mb-1.5">
                     उम्र (Age) <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -551,23 +551,23 @@ export default function HealthStationDashboard() {
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     placeholder="45"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                    className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     लिंग (Gender)
                   </label>
-                  <div className="grid grid-cols-3 gap-1">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {(["Female", "Male", "Other"] as const).map((g) => (
                       <button
                         key={g}
                         type="button"
                         onClick={() => setGender(g)}
-                        className={`h-10 rounded-lg text-xs font-medium border transition-colors ${
+                        className={`min-h-[48px] rounded-xl text-xs sm:text-xs font-semibold border transition-all cursor-pointer ${
                           gender === g
-                            ? "bg-slate-900 text-white border-slate-900"
+                            ? "bg-slate-900 text-white border-slate-900 shadow-xs"
                             : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
@@ -578,10 +578,10 @@ export default function HealthStationDashboard() {
                 </div>
               </div>
 
-              {/* Village & Phone */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Village & Phone - Stacks on mobile, 2-cols on tablet/desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label htmlFor={`${formId}-village`} className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor={`${formId}-village`} className="block text-xs font-semibold text-slate-700 mb-1.5">
                     गाँव (Village) <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -591,12 +591,12 @@ export default function HealthStationDashboard() {
                     value={village}
                     onChange={(e) => setVillage(e.target.value)}
                     placeholder="रामपुर"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                    className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor={`${formId}-phone`} className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor={`${formId}-phone`} className="block text-xs font-semibold text-slate-700 mb-1.5">
                     मोबाइल नंबर (Phone)
                   </label>
                   <input
@@ -604,15 +604,15 @@ export default function HealthStationDashboard() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="10 अंक"
-                    className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                    placeholder="10 अंक मोबाइल"
+                    className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                   />
                 </div>
               </div>
 
               {/* ABHA ID */}
               <div>
-                <label htmlFor={`${formId}-abha`} className="block text-xs font-semibold text-slate-700 mb-1 flex justify-between">
+                <label htmlFor={`${formId}-abha`} className="block text-xs font-semibold text-slate-700 mb-1.5 flex justify-between">
                   <span>आभा आईडी (ABHA ID)</span>
                   <span className="text-[11px] text-slate-400 font-normal">वैकल्पिक</span>
                 </label>
@@ -622,7 +622,7 @@ export default function HealthStationDashboard() {
                   value={abhaId}
                   onChange={(e) => setAbhaId(e.target.value)}
                   placeholder="91-XXXX-XXXX-XXXX"
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                  className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                 />
               </div>
 
@@ -631,15 +631,15 @@ export default function HealthStationDashboard() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   लक्षण (Quick Symptoms):
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {VERNACULAR_TRIAGE_KNOWLEDGE.slice(0, 4).map((sym) => (
                     <button
                       key={sym.id}
                       type="button"
                       onClick={() => handleSelectSymptom(sym)}
-                      className={`px-2.5 py-1 rounded-md text-xs transition-colors border ${
+                      className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-xs font-medium transition-colors border cursor-pointer ${
                         selectedSymptom?.id === sym.id
-                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-medium"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold shadow-xs"
                           : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
@@ -656,7 +656,7 @@ export default function HealthStationDashboard() {
                   value={chiefComplaint}
                   onChange={(e) => setChiefComplaint(e.target.value)}
                   placeholder="मुख्य समस्या (जैसे बुखार, खांसी, दर्द)..."
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                  className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                 />
               </div>
 
@@ -665,7 +665,7 @@ export default function HealthStationDashboard() {
                 <button
                   type="button"
                   onClick={handleToggleRecordAudio}
-                  className={`flex-1 h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border transition-all ${
+                  className={`flex-1 min-h-[48px] px-3 py-2 rounded-xl text-xs sm:text-xs font-semibold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
                     isRecordingAudio
                       ? "bg-rose-50 text-rose-700 border-rose-300 animate-pulse"
                       : hasAudioNote
@@ -673,7 +673,7 @@ export default function HealthStationDashboard() {
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  {isRecordingAudio ? <MicOff className="w-4 h-4 text-rose-600" /> : <Mic className="w-4 h-4 text-slate-600" />}
+                  {isRecordingAudio ? <MicOff className="w-4 h-4 text-rose-600 shrink-0" /> : <Mic className="w-4 h-4 text-slate-600 shrink-0" />}
                   <span>
                     {isRecordingAudio
                       ? `रिकॉर्डिंग चालू (${audioSeconds}s)`
@@ -686,7 +686,7 @@ export default function HealthStationDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowVitals(!showVitals)}
-                  className={`px-3 h-10 rounded-lg text-xs font-medium border transition-colors ${
+                  className={`min-h-[48px] px-4 rounded-xl text-xs sm:text-xs font-semibold border transition-colors cursor-pointer ${
                     showVitals
                       ? "bg-slate-900 text-white border-slate-900"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -698,35 +698,38 @@ export default function HealthStationDashboard() {
 
               {/* Collapsible Vitals Strip */}
               {showVitals && (
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 grid grid-cols-3 gap-2">
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-3 gap-2.5">
                   <div>
-                    <label htmlFor={`${formId}-bp`} className="block text-[11px] text-slate-500 mb-0.5">BP (रक्तचाप)</label>
+                    <label htmlFor={`${formId}-bp`} className="block text-[11px] text-slate-500 mb-1 font-medium">BP (रक्तचाप)</label>
                     <input
                       id={`${formId}-bp`}
                       type="text"
                       value={bloodPressure}
                       onChange={(e) => setBloodPressure(e.target.value)}
-                      className="w-full h-8 px-2 text-center text-xs font-bold rounded border bg-white"
+                      placeholder="120/80"
+                      className="w-full min-h-[44px] px-2 text-center text-base font-bold rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label htmlFor={`${formId}-spo2`} className="block text-[11px] text-slate-500 mb-0.5">SpO2 (%)</label>
+                    <label htmlFor={`${formId}-spo2`} className="block text-[11px] text-slate-500 mb-1 font-medium">SpO2 (%)</label>
                     <input
                       id={`${formId}-spo2`}
                       type="number"
                       value={spo2}
                       onChange={(e) => setSpo2(e.target.value)}
-                      className="w-full h-8 px-2 text-center text-xs font-bold rounded border bg-white"
+                      placeholder="98"
+                      className="w-full min-h-[44px] px-2 text-center text-base font-bold rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label htmlFor={`${formId}-pulse`} className="block text-[11px] text-slate-500 mb-0.5">Pulse (धड़कन)</label>
+                    <label htmlFor={`${formId}-pulse`} className="block text-[11px] text-slate-500 mb-1 font-medium">Pulse (धड़कन)</label>
                     <input
                       id={`${formId}-pulse`}
                       type="number"
                       value={pulse}
                       onChange={(e) => setPulse(e.target.value)}
-                      className="w-full h-8 px-2 text-center text-xs font-bold rounded border bg-white"
+                      placeholder="76"
+                      className="w-full min-h-[44px] px-2 text-center text-base font-bold rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -735,18 +738,18 @@ export default function HealthStationDashboard() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full h-11 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 mt-2"
+                className="w-full min-h-[50px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-base font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-5 h-5" />
                 <span>मरीज दर्ज करें (Save Patient)</span>
               </button>
             </form>
           </section>
 
           {/* Right Column: Clean Patient Queue */}
-          <section className="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col min-h-[560px]">
+          <section className="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col min-h-[560px]">
             {/* Queue Header */}
-            <div className="pb-3 border-b border-slate-100 flex items-center justify-between gap-3">
+            <div className="pb-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900">
                   मरीज कतार (Patient Queue)
@@ -757,12 +760,12 @@ export default function HealthStationDashboard() {
               </div>
 
               {villagesList.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400 shrink-0" />
                   <select
                     value={selectedVillageFilter}
                     onChange={(e) => setSelectedVillageFilter(e.target.value)}
-                    className="h-8 px-2 rounded-lg border border-slate-200 text-xs bg-slate-50 text-slate-700"
+                    className="min-h-[44px] sm:h-9 px-3 rounded-xl border border-slate-200 text-sm sm:text-xs bg-slate-50 text-slate-700 font-medium"
                   >
                     <option value="ALL">सभी गाँव</option>
                     {villagesList.map((v) => (
@@ -777,18 +780,18 @@ export default function HealthStationDashboard() {
 
             {/* Search Bar */}
             <div className="my-3 relative">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="नाम, फ़ोन नंबर या गाँव से खोजें..."
-                className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs focus:border-slate-800 bg-slate-50/50"
+                className="w-full min-h-[48px] pl-10 pr-4 rounded-xl border border-slate-200 text-base focus:border-slate-800 bg-slate-50/50"
               />
             </div>
 
             {/* Patients List */}
-            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[500px]">
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[500px]">
               {filteredPatients.length === 0 ? (
                 <div className="text-center py-16 text-slate-400">
                   <Users className="w-10 h-10 mx-auto mb-2 opacity-30" />
@@ -803,15 +806,15 @@ export default function HealthStationDashboard() {
                   return (
                     <div
                       key={patient.id}
-                      className="p-3.5 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-sm"
+                      className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-xs"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 font-bold text-sm flex items-center justify-center shrink-0">
                             {patient.gender === "Female" ? "F" : "M"}
                           </div>
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <h3 className="text-sm font-bold text-slate-900">
                                 {patient.name}
                               </h3>
@@ -819,13 +822,13 @@ export default function HealthStationDashboard() {
                                 {patient.age} वर्ष
                               </span>
                               {patient.abhaId && (
-                                <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200">
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200">
                                   ABHA
                                 </span>
                               )}
                             </div>
 
-                            <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+                            <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                               <span>{patient.village}</span>
                               <span>•</span>
                               <span>{patient.phone}</span>
@@ -837,11 +840,11 @@ export default function HealthStationDashboard() {
                         <div>
                           {latestPkt ? (
                             latestPkt.status === "synced" ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 सिंक हुआ
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
                                 कतार में
                               </span>
                             )
@@ -853,8 +856,8 @@ export default function HealthStationDashboard() {
 
                       {/* Complaint Preview */}
                       {latestPkt && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                          <p className="line-clamp-1">
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                          <p className="line-clamp-1 flex-1 min-w-[200px]">
                             <span className="font-medium text-slate-700">समस्या:</span> {latestPkt.chiefComplaint}
                           </p>
                           <div className="flex gap-2 shrink-0 font-medium text-slate-500 text-[11px]">
@@ -864,44 +867,46 @@ export default function HealthStationDashboard() {
                         </div>
                       )}
 
-                      {/* Action Links Bar */}
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                      {/* Action Links Bar - Mobile First Layout */}
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <button
                           onClick={() => {
                             setActivePatientForTriage(patient);
                             setModalComplaint("");
                           }}
-                          className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1"
+                          className="min-h-[44px] sm:min-h-[36px] px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs sm:text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
-                          <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>+ वाइटल्स</span>
+                          <Stethoscope className="w-4 h-4 text-emerald-600" />
+                          <span>+ वाइटल्स जांचें</span>
                         </button>
 
-                        <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-1 sm:flex items-center gap-2 w-full sm:w-auto">
                           <Link
                             href={`/triage/${patient.id || 1}`}
-                            className="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 shadow-xs flex items-center gap-1 transition-all"
+                            className="min-h-[48px] sm:min-h-[36px] px-3.5 py-2 rounded-xl text-xs sm:text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer"
                             title="Open ASHA Worker Triage and LiveKit Consultation"
                           >
-                            <Video className="w-3.5 h-3.5 text-white animate-pulse" />
+                            <Video className="w-4 h-4 text-white animate-pulse" />
                             <span>लाइव ट्राइएज कॉल</span>
                           </Link>
 
-                          <Link
-                            href={`/kiosk/call?patientId=${patient.id || 1}`}
-                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 flex items-center gap-1"
-                          >
-                            <Video className="w-3.5 h-3.5 text-blue-600" />
-                            <span>डॉक्टर कॉल</span>
-                          </Link>
+                          <div className="grid grid-cols-2 sm:flex items-center gap-2">
+                            <Link
+                              href={`/kiosk/call?patientId=${patient.id || 1}`}
+                              className="min-h-[44px] sm:min-h-[36px] px-3 py-2 rounded-xl text-xs sm:text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 flex items-center justify-center gap-1.5 transition-colors text-center"
+                            >
+                              <Video className="w-3.5 h-3.5 text-blue-600" />
+                              <span>डॉक्टर कॉल</span>
+                            </Link>
 
-                          <Link
-                            href={`/kiosk/prescriptions?patientId=${patient.id || 1}`}
-                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center gap-1"
-                          >
-                            <Printer className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>पर्चा प्रिंट</span>
-                          </Link>
+                            <Link
+                              href={`/kiosk/prescriptions?patientId=${patient.id || 1}`}
+                              className="min-h-[44px] sm:min-h-[36px] px-3 py-2 rounded-xl text-xs sm:text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center gap-1.5 transition-colors text-center"
+                            >
+                              <Printer className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>पर्चा प्रिंट</span>
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -915,15 +920,15 @@ export default function HealthStationDashboard() {
 
       {/* Modal for Quick Vitals Intake */}
       {activePatientForTriage && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-sm w-full p-5 shadow-xl border border-slate-200">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
-              <h3 className="text-sm font-bold text-slate-900">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <h3 className="text-base font-bold text-slate-900">
                 वाइटल्स जांच (Vitals Intake)
               </h3>
               <button
                 onClick={() => setActivePatientForTriage(null)}
-                className="text-slate-400 hover:text-slate-700 text-xs"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -933,9 +938,9 @@ export default function HealthStationDashboard() {
               मरीज: <span className="font-bold text-slate-900">{activePatientForTriage.name}</span>
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   मुख्य समस्या
                 </label>
                 <input
@@ -943,53 +948,56 @@ export default function HealthStationDashboard() {
                   value={modalComplaint}
                   onChange={(e) => setModalComplaint(e.target.value)}
                   placeholder="जैसे बुखार, कमजोरी..."
-                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs bg-slate-50"
+                  className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base bg-slate-50 focus:bg-white focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-[11px] text-slate-500 mb-0.5">BP</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-medium text-center">BP</label>
                   <input
                     type="text"
                     value={modalBP}
                     onChange={(e) => setModalBP(e.target.value)}
-                    className="w-full h-8 px-2 text-center text-xs font-bold rounded border bg-white"
+                    placeholder="120/80"
+                    className="w-full min-h-[44px] px-2 text-center text-base font-bold rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-slate-500 mb-0.5">SpO2</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-medium text-center">SpO2</label>
                   <input
                     type="number"
                     value={modalSpo2}
                     onChange={(e) => setModalSpo2(e.target.value)}
-                    className="w-full h-8 px-2 text-center text-xs font-bold rounded border bg-white"
+                    placeholder="98"
+                    className="w-full min-h-[44px] px-2 text-center text-base font-bold rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-slate-500 mb-0.5">Pulse</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-medium text-center">Pulse</label>
                   <input
                     type="number"
                     value={modalPulse}
                     onChange={(e) => setModalPulse(e.target.value)}
-                    className="w-full h-8 px-2 text-center text-xs font-bold rounded border bg-white"
+                    placeholder="76"
+                    className="w-full min-h-[44px] px-2 text-center text-base font-bold rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-5 flex gap-2.5">
               <button
                 type="button"
                 onClick={() => setActivePatientForTriage(null)}
-                className="flex-1 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium"
+                className="flex-1 min-h-[48px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-xs font-semibold cursor-pointer"
               >
                 रद्द करें
               </button>
               <button
                 type="button"
                 onClick={handleSaveModalTriage}
-                className="flex-1 h-9 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
+                className="flex-1 min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-xs font-bold shadow-md shadow-emerald-600/20 cursor-pointer"
               >
                 सहेजें
               </button>

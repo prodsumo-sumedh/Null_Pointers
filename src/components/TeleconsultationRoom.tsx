@@ -135,22 +135,22 @@ export default function TeleconsultationRoom({
 
   return (
     <div
-      className={`relative flex flex-col bg-slate-950 text-white rounded-2xl overflow-hidden border border-slate-800 shadow-2xl h-[650px] max-h-[85vh] ${className}`}
+      className={`relative flex flex-col bg-slate-950 text-white rounded-2xl overflow-hidden border border-slate-800 shadow-2xl w-full max-w-full h-[500px] sm:h-[600px] md:h-[650px] max-h-[85vh] ${className}`}
     >
       {/* Top Banner with Room Info and Adaptive Stream Indicator */}
-      <div className="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs shrink-0 z-10 backdrop-blur-sm">
+      <div className="px-3 sm:px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0 z-10 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           {onDisconnect && (
             <button
               onClick={onDisconnect}
-              className="p-1 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
               title="Leave Room"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-bold text-slate-100">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="font-bold text-slate-100 line-clamp-1">
             {title || `Live Teleconsultation — Room #${roomName}`}
           </span>
           <span className="text-slate-400 text-[11px] hidden sm:inline">
@@ -158,17 +158,17 @@ export default function TeleconsultationRoom({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <span
-            className="px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/40 text-[10px] font-semibold flex items-center gap-1"
+            className="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/40 text-[10px] font-semibold flex items-center gap-1"
             title="Dynacast and Adaptive Stream are active to tolerate 2G/low-bandwidth rural connections without dropping calls."
           >
             <Wifi className="w-3 h-3 text-emerald-400" />
-            <span>एडेप्टिव स्ट्रीम (Low Bandwidth Tolerant)</span>
+            <span>एडेप्टिव स्ट्रीम</span>
           </span>
-          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700 hidden md:inline-flex items-center gap-1">
+          <span className="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700 hidden sm:inline-flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            LiveKit Secure WebRTC
+            LiveKit
           </span>
         </div>
       </div>

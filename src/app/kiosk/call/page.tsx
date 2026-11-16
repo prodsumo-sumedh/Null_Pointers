@@ -1080,30 +1080,30 @@ function KioskCallReceiverContent() {
                 </div>
 
                 {/* Video Controls Bar */}
-                <div className="p-3 bg-gradient-to-t from-black/90 to-transparent z-10 flex items-center justify-center gap-2.5 flex-wrap">
+                <div className="p-3 bg-gradient-to-t from-black/90 to-transparent z-10 flex items-center justify-center gap-3 flex-wrap">
                   {/* Mic Toggle */}
                   <button
                     onClick={handleToggleMute}
-                    className={`p-2.5 rounded-full text-white transition-colors ${isMuted ? "bg-rose-600" : "bg-slate-700/80 hover:bg-slate-600"}`}
+                    className={`min-h-[48px] min-w-[48px] rounded-full text-white transition-all flex items-center justify-center cursor-pointer ${isMuted ? "bg-rose-600 shadow-md shadow-rose-600/30" : "bg-slate-700/80 hover:bg-slate-600"}`}
                     title={isMuted ? "Unmute Mic" : "Mute Mic"}
                   >
-                    {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
 
                   {/* Video Toggle */}
                   <button
                     onClick={handleToggleVideo}
-                    className={`p-2.5 rounded-full text-white transition-colors ${isVideoOff ? "bg-rose-600" : "bg-slate-700/80 hover:bg-slate-600"}`}
+                    className={`min-h-[48px] min-w-[48px] rounded-full text-white transition-all flex items-center justify-center cursor-pointer ${isVideoOff ? "bg-rose-600 shadow-md shadow-rose-600/30" : "bg-slate-700/80 hover:bg-slate-600"}`}
                     title={isVideoOff ? "Turn Video On" : "Turn Video Off"}
                   >
-                    {isVideoOff ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+                    {isVideoOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
                   </button>
 
                   {/* Dual Camera Switch Button (Front vs Rear / Clinical Exam Camera) */}
                   <button
                     onClick={handleToggleCameraFacingMode}
                     disabled={isSwitchingCamera || isVideoOff}
-                    className={`px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md ${
+                    className={`min-h-[48px] px-4 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all shadow-md cursor-pointer ${
                       cameraFacingMode === "environment"
                         ? "bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
                         : "bg-slate-700/80 hover:bg-slate-600 text-white"
@@ -1111,15 +1111,15 @@ function KioskCallReceiverContent() {
                     title="कैमरा बदलें: मरीज चेहरा ↔ घाव/क्लिनिकल जांच (Switch Front/Rear Camera)"
                   >
                     <SwitchCamera className={`w-4 h-4 ${isSwitchingCamera ? "animate-spin" : ""}`} />
-                    <span className="hidden sm:inline">
-                      {cameraFacingMode === "user" ? "जांच कैमरा (Rear Exam)" : "मरीज चेहरा (Front Face)"}
+                    <span>
+                      {cameraFacingMode === "user" ? "जांच कैमरा (Rear)" : "मरीज (Front)"}
                     </span>
                   </button>
 
                   {/* End Call */}
                   <button
                     onClick={() => handleEndCall(true)}
-                    className="px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md"
+                    className="min-h-[48px] px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-600/30 cursor-pointer"
                   >
                     <PhoneOff className="w-4 h-4" />
                     <span>कॉल समाप्त करें</span>

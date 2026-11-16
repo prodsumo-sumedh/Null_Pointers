@@ -73,10 +73,10 @@ export default function PortalSelection() {
               </div>
             </div>
 
-            <div className="pt-6 space-y-2.5">
+            <div className="pt-6 space-y-3">
               <Link
                 href="/login/kiosk"
-                className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
               >
                 <span>स्वास्थ्य केंद्र लॉगिन (Kiosk Login)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -91,16 +91,16 @@ export default function PortalSelection() {
                     village: "रामपुर",
                   })
                 }
-                className="w-full h-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium text-xs border border-emerald-200 transition-colors flex items-center justify-center gap-1.5"
+                className="w-full min-h-[48px] px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold text-xs border border-emerald-200 transition-colors flex items-center justify-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <Sparkles className="w-4 h-4 text-emerald-600" />
                 <span>त्वरित डेमो कियोस्क प्रवेश (1-Click Demo)</span>
               </button>
             </div>
           </div>
 
           {/* Card 2: Doctor Portal */}
-          <div className="bg-white rounded-2xl border-2 border-blue-500/30 hover:border-blue-500 shadow-sm hover:shadow-md transition-all p-6 sm:p-8 flex flex-col justify-between group">
+          <div className="bg-white rounded-2xl border-2 border-blue-500/30 hover:border-blue-500 shadow-sm hover:shadow-md transition-all p-5 sm:p-8 flex flex-col justify-between group">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 group-hover:scale-105 transition-transform">
@@ -134,10 +134,10 @@ export default function PortalSelection() {
               </div>
             </div>
 
-            <div className="pt-6 space-y-2.5">
+            <div className="pt-6 space-y-3">
               <Link
                 href="/login/doctor"
-                className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
               >
                 <span>डॉक्टर पोर्टल लॉगिन (Doctor Login)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -152,9 +152,9 @@ export default function PortalSelection() {
                     specialty: "Internal Medicine Specialist",
                   })
                 }
-                className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 font-medium text-xs border border-blue-200 transition-colors flex items-center justify-center gap-1.5"
+                className="w-full min-h-[48px] px-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 font-semibold text-xs border border-blue-200 transition-colors flex items-center justify-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                <Sparkles className="w-4 h-4 text-blue-600" />
                 <span>त्वरित डेमो डॉक्टर प्रवेश (1-Click Demo)</span>
               </button>
             </div>

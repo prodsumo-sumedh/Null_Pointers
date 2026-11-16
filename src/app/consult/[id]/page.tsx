@@ -996,32 +996,32 @@ function ConsultRoomContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
 
             {/* Call Controls Bar */}
-            <div className="p-3 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-center gap-3 z-10">
+            <div className="p-3 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-center gap-3 z-10 flex-wrap">
               <button
                 onClick={handleToggleMic}
-                className={`p-3 rounded-full transition-colors ${
-                  isMicMuted ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-200 hover:bg-slate-700"
+                className={`min-h-[48px] min-w-[48px] rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                  isMicMuted ? "bg-rose-600 text-white shadow-md shadow-rose-600/30" : "bg-slate-800 text-slate-200 hover:bg-slate-700"
                 }`}
                 title={isMicMuted ? "Unmute Mic" : "Mute Mic"}
               >
-                {isMicMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isMicMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
 
               <button
                 onClick={handleToggleVideo}
-                className={`p-3 rounded-full transition-colors ${
-                  isVideoDisabled ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-200 hover:bg-slate-700"
+                className={`min-h-[48px] min-w-[48px] rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                  isVideoDisabled ? "bg-rose-600 text-white shadow-md shadow-rose-600/30" : "bg-slate-800 text-slate-200 hover:bg-slate-700"
                 }`}
                 title={isVideoDisabled ? "Enable Video" : "Disable Video"}
               >
-                {isVideoDisabled ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+                {isVideoDisabled ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
               </button>
 
               {/* End Call / Restart Call / Initiate Call Button */}
               {callState === "CONNECTED" || callState === "CALLING" ? (
                 <button
                   onClick={() => handleEndCall(true)}
-                  className="px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
+                  className="min-h-[48px] px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all active:scale-95 cursor-pointer"
                   title="कॉल समाप्त करें"
                 >
                   <PhoneOff className="w-4 h-4" />
@@ -1034,14 +1034,14 @@ function ConsultRoomContent({ params }: { params: Promise<{ id: string }> }) {
                       setCallState("IDLE");
                       initLocalMedia();
                     }}
-                    className="px-4 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="min-h-[48px] px-4 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>नया कॉल शुरू करें</span>
                   </button>
                   <Link
                     href={`/rx/${patientIdNum}`}
-                    className="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-colors"
+                    className="min-h-[48px] px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-colors"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>प्रिस्क्रिप्शन बनाएं →</span>

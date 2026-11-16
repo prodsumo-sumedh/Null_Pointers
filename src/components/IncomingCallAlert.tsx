@@ -249,7 +249,7 @@ export default function IncomingCallAlert() {
         <div className="grid grid-cols-2 gap-3 pt-1">
           <button
             onClick={handleDecline}
-            className="h-12 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="min-h-[48px] rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <PhoneOff className="w-4 h-4" />
             <span>अस्वीकार (Decline)</span>
@@ -257,7 +257,7 @@ export default function IncomingCallAlert() {
 
           <button
             onClick={handleAccept}
-            className="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <PhoneCall className="w-4 h-4" />
             <span>कॉल उठाएं (Accept)</span>

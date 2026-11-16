@@ -74,10 +74,10 @@ export default function KioskLoginPage() {
           <button
             type="button"
             onClick={handleQuickDemoLogin}
-            className="w-full mb-6 p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-left transition-all flex items-center justify-between group"
+            className="w-full mb-6 min-h-[48px] p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-left transition-all flex items-center justify-between group cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-emerald-600 text-white shadow-xs group-hover:scale-105 transition-transform">
+              <div className="p-2 rounded-xl bg-emerald-600 text-white shadow-xs group-hover:scale-105 transition-transform">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
@@ -104,51 +104,51 @@ export default function KioskLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Kiosk ID */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 केंद्र आईडी / कोड (Station ID)
               </label>
               <div className="relative">
-                <Building2 className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Building2 className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={kioskId}
                   onChange={(e) => setKioskId(e.target.value)}
                   placeholder="उदा. HS-RAJ-104"
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             {/* Operator Name */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 ऑपरेटर का नाम (Operator Name)
               </label>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <User className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={operatorName}
                   onChange={(e) => setOperatorName(e.target.value)}
                   placeholder="उदा. सुनीता देवी"
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             {/* Village Selector */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 स्थान / गाँव (Village & Location)
               </label>
               <div className="relative">
-                <MapPin className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <MapPin className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <select
                   value={village}
                   onChange={(e) => setVillage(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
                 >
                   <option value="रामपुर (Rampur)">रामपुर (Rampur)</option>
                   <option value="शिवपुरी (Shivpuri)">शिवपुरी (Shivpuri)</option>
@@ -160,18 +160,18 @@ export default function KioskLoginPage() {
 
             {/* PIN */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 सुरक्षा पिन (4-Digit PIN)
               </label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <KeyRound className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
                   type="password"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   maxLength={4}
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
+                  className="w-full min-h-[48px] pl-11 pr-3 rounded-xl border border-slate-200 bg-slate-50/50 text-base text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function KioskLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-10 mt-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+              className="w-full min-h-[48px] mt-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isSubmitting ? "लॉगिन हो रहा है..." : "स्वास्थ्य केंद्र में प्रवेश करें"}</span>
               <ArrowRight className="w-4 h-4" />
@@ -191,7 +191,7 @@ export default function KioskLoginPage() {
             <span className="text-slate-500">क्या आप विशेषज्ञ डॉक्टर हैं?</span>
             <Link
               href="/login/doctor"
-              className="font-semibold text-blue-600 hover:text-blue-500 flex items-center gap-1"
+              className="min-h-[44px] px-2 py-1 font-semibold text-blue-600 hover:text-blue-500 flex items-center gap-1.5"
             >
               <Stethoscope className="w-3.5 h-3.5" />
               <span>डॉक्टर लॉगिन →</span>
