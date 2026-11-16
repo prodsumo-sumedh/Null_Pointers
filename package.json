@@ -1,0 +1,42 @@
+{
+  "name": "rural-telemed",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"next,signaling\" -c \"blue,green\" \"next dev -H 0.0.0.0\" \"node signaling-server.js\"",
+    "dev:next": "next dev -H 0.0.0.0",
+    "dev:https": "concurrently -n \"next,signaling\" -c \"blue,green\" \"next dev --experimental-https -H 0.0.0.0\" \"node signaling-server.js\"",
+    "signaling": "node signaling-server.js",
+    "clean-ports": "powershell -Command \"try { Get-NetTCPConnection -LocalPort 3000, 3001, 3002 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } } catch {}; exit 0\"",
+    "build": "next build",
+    "start": "concurrently -n \"next,signaling\" -c \"blue,green\" \"next start -H 0.0.0.0\" \"node signaling-server.js\"",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@livekit/components-react": "^2.9.25",
+    "@livekit/components-styles": "^1.2.0",
+    "clsx": "^2.1.1",
+    "dexie": "^4.4.6",
+    "dexie-react-hooks": "^4.4.0",
+    "livekit-client": "^2.24.1",
+    "livekit-server-sdk": "^2.19.3",
+    "lucide-react": "^1.54.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "concurrently": "^10.0.6",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
