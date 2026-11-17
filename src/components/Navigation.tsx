@@ -77,7 +77,7 @@ export default function Navigation() {
   const isLoginPage = pathname.startsWith("/login");
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm font-sans w-full max-w-full">
+    <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm font-sans w-full max-w-full print:hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2 sm:gap-4 overflow-x-hidden">
         {/* Brand */}
         <Link
@@ -154,6 +154,19 @@ export default function Navigation() {
                     </span>
                   )}
                 </Link>
+
+                <Link
+                  href="/kiosk/history"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[48px] ${
+                    pathname.startsWith("/kiosk/history")
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                  }`}
+                >
+                  <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="hidden md:inline">{t("history", "इतिहास")}</span>
+                  <span className="md:hidden">इतिहास</span>
+                </Link>
               </>
             )}
 
@@ -197,6 +210,19 @@ export default function Navigation() {
                   <FileText className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">प्रिस्क्रिप्शन</span>
                   <span className="sm:hidden">पर्चा</span>
+                </Link>
+
+                <Link
+                  href="/doctor/history"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[48px] ${
+                    pathname.startsWith("/doctor/history")
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                  }`}
+                >
+                  <Clock className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">{t("history", "इतिहास")}</span>
+                  <span className="sm:hidden">इतिहास</span>
                 </Link>
               </>
             )}

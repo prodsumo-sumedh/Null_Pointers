@@ -476,6 +476,14 @@ export default function HealthStationDashboard() {
               )}
             </button>
 
+            <Link
+              href="/kiosk/history"
+              className="min-h-[44px] sm:min-h-[38px] px-3.5 py-2 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 transition-colors flex items-center gap-1.5"
+            >
+              <Clock className="w-3.5 h-3.5 text-emerald-600" />
+              <span>मरीज इतिहास</span>
+            </Link>
+
             <button
               onClick={handleSeedDemoData}
               className="min-h-[44px] sm:min-h-[38px] px-3 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors cursor-pointer"

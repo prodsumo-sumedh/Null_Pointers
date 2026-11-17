@@ -53,6 +53,16 @@ export const DICTIONARY: Record<string, Record<Language, string>> = {
     hi: "दवा पर्चा व प्रिंट",
     mr: "औषध पत्रक आणि प्रिंट",
   },
+  history: {
+    en: "History",
+    hi: "इतिहास",
+    mr: "इतिहास",
+  },
+  consultationHistory: {
+    en: "Consultation History",
+    hi: "परामर्श इतिहास",
+    mr: "सल्लामसलत इतिहास",
+  },
   teleconsult: {
     en: "Tele-Consultation",
     hi: "टेली-परामर्श",

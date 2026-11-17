@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, Patient, Prescription, PrescribedMedicationItem, DEFAULT_PATIENTS } from "@/lib/db";
+import { db, Patient, Prescription, PrescribedMedicationItem, ChatMessage, DEFAULT_PATIENTS } from "@/lib/db";
 import {
   FileText,
   Printer,
@@ -24,7 +24,8 @@ import {
   Sparkles,
   RefreshCw,
   PhoneCall,
-  Check
+  Check,
+  MessageSquare
 } from "lucide-react";
 
 function PrescriptionsContent() {
@@ -131,6 +132,36 @@ function PrescriptionsContent() {
     prescriptionsWithPatient.find((rx) => rx.id === selectedRxId) ||
     filteredPrescriptions[0];
 
+  const chatMessages =
+    useLiveQuery(
+      async () => {
+        if (!selectedRx?.patientId || !db.chatMessages) return [];
+        try {
+          const pId = selectedRx.patientId;
+          const targetRoomIds = [
+            `consult-room-${pId}`,
+            `patient-${pId}`,
+            String(pId),
+            `room-${pId}`,
+          ];
+          const list = await db.chatMessages
+            .where("roomId")
+            .anyOf(targetRoomIds)
+            .sortBy("timestamp");
+          if (list && list.length > 0) return list;
+
+          // Fallback: check any message whose roomId contains patient id
+          const all = await db.chatMessages.toArray();
+          return all.filter((m) => m.roomId && m.roomId.includes(String(pId)));
+        } catch (err) {
+          console.error("[PrescriptionsArchive] Error reading chatMessages:", err);
+          return [];
+        }
+      },
+      [selectedRx?.patientId],
+      []
+    ) ?? [];
+
   const handlePrint = () => {
     setIsPrinting(true);
     setTimeout(() => {
@@ -227,7 +258,31 @@ function PrescriptionsContent() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-900 flex flex-col font-sans pb-10 overflow-x-hidden w-full max-w-full">
+    <div className="min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-900 flex flex-col font-sans pb-10 overflow-x-hidden w-full max-w-full print:bg-white print:p-0 print:m-0">
+      {/* Explicit Print Optimization Stylesheet */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 10mm;
+          }
+          html, body {
+            background: white !important;
+            color: black !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          header, nav, aside, button, .print\\:hidden {
+            display: none !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
+
       {/* Action Header (Hidden in Print) */}
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 print:hidden w-full">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -254,17 +309,17 @@ function PrescriptionsContent() {
             <button
               onClick={handlePrint}
               disabled={!selectedRx}
-              className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>पर्चा प्रिंट करें (Print Prescription)</span>
+              <span>Print Record (पर्चा व रिकॉर्ड प्रिंट करें)</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start overflow-x-hidden">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start overflow-x-hidden print:block print:w-full print:max-w-none print:p-0 print:m-0">
         {/* Left Column (5 cols): Prescription List & Search (Hidden in Print) */}
         <section className="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-4 print:hidden flex flex-col min-h-[580px]">
           <div className="pb-3 border-b border-slate-100 mb-3">
@@ -359,7 +414,7 @@ function PrescriptionsContent() {
         </section>
 
         {/* Right Column (7 cols): Final Printable Prescription Card */}
-        <section className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 print:border-none print:shadow-none print:p-0 print:col-span-12">
+        <section className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 print:border-none print:shadow-none print:p-0 print:col-span-12 print:w-full print:max-w-none print:m-0">
           {selectedRx ? (
             <div className="space-y-5">
               {/* Slip Header */}
@@ -504,6 +559,63 @@ function PrescriptionsContent() {
                 </div>
               )}
 
+              {/* Consultation Chat Transcript & Medical Record Log */}
+              <div className="mt-5 pt-4 border-t-2 border-slate-200">
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-emerald-600 print:text-slate-800 shrink-0" />
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                      टेली-परामर्श चैट प्रतिलेख व संवाद रिकॉर्ड (Consultation Chat Transcript & Record)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-medium print:text-slate-600">
+                    {chatMessages.length > 0 ? `${chatMessages.length} संदेश दर्ज` : "सत्र रिकॉर्ड"}
+                  </span>
+                </div>
+
+                {chatMessages.length === 0 ? (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400 print:border-slate-300 print:bg-white print:text-slate-600">
+                    इस परामर्श सत्र के दौरान कोई अतिरिक्त चैट संदेश दर्ज नहीं किया गया।
+                  </div>
+                ) : (
+                  <div className="space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50/50 print:bg-white print:border-slate-300">
+                    {chatMessages.map((msg, idx) => {
+                      const isDoc = msg.senderRole === "doctor";
+                      return (
+                        <div
+                          key={msg.id || idx}
+                          className={`p-2.5 rounded-lg border text-xs ${
+                            isDoc
+                              ? "bg-blue-50/80 border-blue-200 text-slate-800"
+                              : "bg-emerald-50/80 border-emerald-200 text-slate-800"
+                          } print:bg-white print:border-slate-300`}
+                        >
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1 pb-1 border-b border-slate-200/50">
+                            <span className="font-bold flex items-center gap-1.5">
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  isDoc ? "bg-blue-600" : "bg-emerald-600"
+                                } print:bg-slate-700`}
+                              />
+                              {isDoc ? "विशेषज्ञ डॉक्टर (Doctor Hub)" : "आशा स्वास्थ्य केंद्र (ASHA Kiosk)"}
+                            </span>
+                            <span>
+                              {new Date(msg.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-xs font-medium text-slate-900 leading-relaxed whitespace-pre-wrap">
+                            {msg.text}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               {/* Slip Footer: QR & Doctor Signature */}
               <div className="mt-6 pt-4 border-t-2 border-slate-200 flex items-end justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -528,22 +640,22 @@ function PrescriptionsContent() {
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 print:hidden">
                 <button
                   onClick={() => handleMarkDispensed(selectedRx.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                  className={`min-h-[48px] px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
                     selectedRx.status === "dispensed"
                       ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
                   }`}
                 >
-                  <Check className="w-3.5 h-3.5" />
+                  <Check className="w-4 h-4" />
                   <span>{selectedRx.status === "dispensed" ? "दवा सौंपी जा चुकी है" : "मरीज को दवा सौंपी"}</span>
                 </button>
 
                 <button
                   onClick={handlePrint}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2"
+                  className="min-h-[48px] px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>पर्चा प्रिंट करें (Print Slip)</span>
+                  <span>Print Record (पर्चा व रिकॉर्ड प्रिंट करें)</span>
                 </button>
               </div>
             </div>
