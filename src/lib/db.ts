@@ -56,6 +56,15 @@ export interface Prescription {
   createdAt: string;
 }
 
+export interface ChatMessage {
+  id?: number;
+  roomId: string;
+  senderRole: 'kiosk' | 'doctor' | string;
+  text: string;
+  status: 'queued' | 'synced';
+  timestamp: string;
+}
+
 export const DEFAULT_PATIENTS: Patient[] = [
   {
     id: 1,
@@ -111,6 +120,7 @@ export class RuralTelemedDatabase extends Dexie {
   patients!: Table<Patient, number>;
   triagePackets!: Table<TriagePacket, number>;
   prescriptions!: Table<Prescription, number>;
+  chatMessages!: Table<ChatMessage, number>;
 
   constructor() {
     super('RuralTelemedDB');
@@ -118,6 +128,9 @@ export class RuralTelemedDatabase extends Dexie {
       patients: '++id, name, age, gender, village, phone, abhaId, createdAt',
       triagePackets: '++id, patientId, priority, status, createdAt',
       prescriptions: '++id, patientId, status, createdAt',
+    });
+    this.version(3).stores({
+      chatMessages: '++id, roomId, senderRole, text, status, timestamp',
     });
   }
 }

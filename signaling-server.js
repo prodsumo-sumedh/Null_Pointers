@@ -117,9 +117,20 @@ io.on("connection", (socket) => {
   });
 
   // Live in-call text chat
-  socket.on("chat-message", ({ roomId, text, sender, time }) => {
-    console.log(`[Chat] Message in ${roomId} from ${sender}: ${text}`);
-    socket.to(roomId).emit("chat-message", { text, sender, time });
+  socket.on("chat-message", (msg) => {
+    const { roomId, text, sender, time, senderRole } = msg || {};
+    console.log(`[Chat] Message in ${roomId} from ${sender || senderRole}: ${text}`);
+    if (roomId) {
+      socket.to(roomId).emit("chat-message", msg);
+    } else {
+      socket.broadcast.emit("chat-message", msg);
+    }
+  });
+
+  // Real-time patient registration broadcast (ASHA Kiosk -> Doctor Hub)
+  socket.on("new-patient-registered", (data) => {
+    console.log(`[Patient] New patient registered broadcast:`, data?.patient?.name || data?.name || data?.id);
+    socket.broadcast.emit("new-patient-registered", data);
   });
 
   // Bandwidth Degradation Tier Sync (Doctor notifies Kiosk of current tier)

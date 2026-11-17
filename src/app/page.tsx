@@ -8,6 +8,7 @@ import PortalSelection from "@/components/PortalSelection";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Patient, TriagePacket, DEFAULT_PATIENTS, DEFAULT_TRIAGE_PACKETS } from "@/lib/db";
 import { VERNACULAR_TRIAGE_KNOWLEDGE, VernacularSymptom } from "@/lib/vernacularTriage";
+import { getSignalingSocket } from "@/lib/webrtc";
 import {
   UserPlus,
   Users,
@@ -192,10 +193,11 @@ export default function HealthStationDashboard() {
 
       const newPatientId = await db.patients.add(newPatient);
 
+      let createdTriagePacket: TriagePacket | undefined;
       if (newPatientId) {
         const parsedSpo2 = parseInt(spo2, 10);
         const parsedPulse = parseInt(pulse, 10);
-        await db.triagePackets.add({
+        const triageData: TriagePacket = {
           patientId: Number(newPatientId),
           chiefComplaint: chiefComplaint.trim() || "सामान्य जांच",
           bloodPressure: bloodPressure.trim() || "—",
@@ -207,7 +209,22 @@ export default function HealthStationDashboard() {
           audioDurationSec: hasAudioNote ? audioSeconds : undefined,
           status: "queued",
           createdAt: new Date().toISOString(),
-        });
+        };
+        const triageId = await db.triagePackets.add(triageData);
+        createdTriagePacket = { ...triageData, id: Number(triageId) };
+      }
+
+      // Real-time broadcast to Doctor Hub via Socket.io
+      try {
+        if (typeof window !== "undefined") {
+          const socket = getSignalingSocket();
+          socket.emit("new-patient-registered", {
+            patient: { ...newPatient, id: Number(newPatientId) },
+            triage: createdTriagePacket,
+          });
+        }
+      } catch (broadcastErr) {
+        console.warn("[Dashboard] Could not emit new-patient-registered event:", broadcastErr);
       }
 
       setName("");
@@ -235,7 +252,7 @@ export default function HealthStationDashboard() {
     try {
       const parsedModalSpo2 = parseInt(modalSpo2, 10);
       const parsedModalPulse = parseInt(modalPulse, 10);
-      await db.triagePackets.add({
+      const triageData: TriagePacket = {
         patientId: activePatientForTriage.id,
         chiefComplaint: modalComplaint.trim() || "सामान्य जांच",
         bloodPressure: modalBP.trim() || "—",
@@ -244,7 +261,22 @@ export default function HealthStationDashboard() {
         priority: !isNaN(parsedModalSpo2) && parsedModalSpo2 > 0 && parsedModalSpo2 < 94 ? "RED" : "YELLOW",
         status: "queued",
         createdAt: new Date().toISOString(),
-      });
+      };
+      const newTriageId = await db.triagePackets.add(triageData);
+
+      // Real-time broadcast to Doctor Hub
+      try {
+        if (typeof window !== "undefined") {
+          const socket = getSignalingSocket();
+          socket.emit("new-patient-registered", {
+            patient: activePatientForTriage,
+            triage: { ...triageData, id: Number(newTriageId) },
+          });
+        }
+      } catch (broadcastErr) {
+        console.warn("[Dashboard] Could not emit triage update:", broadcastErr);
+      }
+
       setActivePatientForTriage(null);
       setModalComplaint("");
       setModalBP("");

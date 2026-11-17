@@ -7,7 +7,8 @@ import {
   VideoConference,
   RoomAudioRenderer,
 } from "@livekit/components-react";
-import { Loader2, AlertCircle, Wifi, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Loader2, AlertCircle, Wifi, ShieldCheck, ArrowLeft, MessageSquare } from "lucide-react";
+import ConsultationChat from "@/components/ConsultationChat";
 
 export interface TeleconsultationRoomProps {
   roomName: string;
@@ -36,6 +37,7 @@ export default function TeleconsultationRoom({
   );
   const [loading, setLoading] = useState<boolean>(!initialToken);
   const [error, setError] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState<boolean>(false);
 
   useEffect(() => {
     if (initialToken) {
@@ -159,6 +161,19 @@ export default function TeleconsultationRoom({
         </div>
 
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setShowChat(!showChat)}
+            className={`px-2.5 py-1 rounded-full text-[10px] font-semibold flex items-center gap-1 transition-all border cursor-pointer ${
+              showChat
+                ? "bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-xs"
+                : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+            }`}
+            title="ऑफ़लाइन-सक्षम चैट खोलें/बंद करें (Toggle Offline-Ready Chat)"
+          >
+            <MessageSquare className="w-3 h-3" />
+            <span>चैट {showChat ? "बंद करें" : "खोलें"}</span>
+          </button>
           <span
             className="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/40 text-[10px] font-semibold flex items-center gap-1"
             title="Dynacast and Adaptive Stream are active to tolerate 2G/low-bandwidth rural connections without dropping calls."
@@ -173,25 +188,39 @@ export default function TeleconsultationRoom({
         </div>
       </div>
 
-      {/* LiveKit Room Provider with Adaptive Stream and Dynacast */}
-      <div className="flex-1 relative w-full h-full overflow-hidden">
-        <LiveKitRoom
-          video={true}
-          audio={true}
-          token={token}
-          serverUrl={serverUrl}
-          connect={true}
-          data-lk-theme="default"
-          options={{
-            adaptiveStream: true,
-            dynacast: true,
-          }}
-          onDisconnected={onDisconnect}
-          className="w-full h-full flex flex-col"
-        >
-          <VideoConference />
-          <RoomAudioRenderer />
-        </LiveKitRoom>
+      {/* LiveKit Room Provider with Adaptive Stream and Dynacast + Optional Offline Chat Drawer */}
+      <div className="flex-1 relative w-full h-full overflow-hidden flex flex-col md:flex-row">
+        <div className={`relative w-full h-full transition-all ${showChat ? "md:w-3/5" : "w-full"}`}>
+          <LiveKitRoom
+            video={true}
+            audio={true}
+            token={token}
+            serverUrl={serverUrl}
+            connect={true}
+            data-lk-theme="default"
+            options={{
+              adaptiveStream: true,
+              dynacast: true,
+            }}
+            onDisconnected={onDisconnect}
+            className="w-full h-full flex flex-col"
+          >
+            <VideoConference />
+            <RoomAudioRenderer />
+          </LiveKitRoom>
+        </div>
+
+        {showChat && (
+          <div className="w-full md:w-2/5 h-64 md:h-full border-t md:border-t-0 md:border-l border-slate-800 z-20 shrink-0">
+            <ConsultationChat
+              roomId={roomName}
+              senderRole={participantName.toLowerCase().includes("doc") ? "doctor" : "kiosk"}
+              senderName={participantName}
+              title="परामर्श चैट (Offline-First)"
+              className="h-full rounded-none border-0"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

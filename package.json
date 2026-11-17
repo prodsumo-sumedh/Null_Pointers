@@ -8,7 +8,7 @@
     "dev:https": "concurrently -n \"next,signaling\" -c \"blue,green\" \"next dev --experimental-https -H 0.0.0.0\" \"node signaling-server.js\"",
     "signaling": "node signaling-server.js",
     "clean-ports": "powershell -Command \"try { Get-NetTCPConnection -LocalPort 3000, 3001, 3002 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } } catch {}; exit 0\"",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "concurrently -n \"next,signaling\" -c \"blue,green\" \"next start -H 0.0.0.0\" \"node signaling-server.js\"",
     "lint": "eslint"
   },
@@ -36,6 +36,7 @@
     "concurrently": "^10.0.6",
     "eslint": "^9",
     "eslint-config-next": "^16.4.6",
+    "pdfkit": "^0.20.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

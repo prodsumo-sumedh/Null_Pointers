@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Patient, TriagePacket, DEFAULT_PATIENTS, DEFAULT_TRIAGE_PACKETS } from "@/lib/db";
+import ConsultationChat from "@/components/ConsultationChat";
 import {
   RTC_CONFIG,
   getSignalingSocket,
@@ -1143,79 +1144,20 @@ function KioskCallReceiverContent() {
             </div>
 
             {/* Right 4 Cols: Operator-Doctor Communication & Quick Actions */}
-            <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                    डॉक्टर संवाद (Doctor Intercom)
-                  </h3>
-                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    लाइव सॉकेट
-                  </span>
-                </div>
-
-                {/* Quick Action Pills for Operator */}
-                <div className="space-y-1.5 mb-3">
-                  <p className="text-[10px] font-semibold text-slate-400">त्वरित जवाब (Quick Responses):</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      onClick={() => handleQuickIntercom("मरीज से गहरी सांस लेने को कहा")}
-                      className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px]"
-                    >
-                      गहरी सांस ली
-                    </button>
-                    <button
-                      onClick={() => handleQuickIntercom("SpO2 दुबारा मापा गया, 98% सामान्य है")}
-                      className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px]"
-                    >
-                      SpO2 98% सामान्य
-                    </button>
-                    <button
-                      onClick={() => handleQuickIntercom("क्लिनिकल जांच कैमरा से घाव दिखाया जा रहा है")}
-                      className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold"
-                    >
-                      📸 घाव/जांच कैमरा चालू
-                    </button>
-                    <button
-                      onClick={() => handleQuickIntercom("दवा पर्चा प्राप्त हो गया है")}
-                      className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px]"
-                    >
-                      पर्चा प्राप्त हुआ
-                    </button>
-                  </div>
-                </div>
-
-                {/* Message Log */}
-                <div className="h-64 overflow-y-auto space-y-2 pr-1 border border-slate-100 rounded-lg p-2.5 bg-slate-50/50">
-                  {messages.map((m, i) => (
-                    <div key={i} className="text-xs bg-white p-2 rounded-lg border border-slate-100 shadow-xs">
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
-                        <span className="font-bold text-slate-700">{m.sender}</span>
-                        <span>{m.time}</span>
-                      </div>
-                      <p className="text-slate-800">{m.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Message Input */}
-              <form onSubmit={handleSendMessage} className="flex gap-2 pt-3 border-t border-slate-100 mt-2">
-                <input
-                  type="text"
-                  value={inputMsg}
-                  onChange={(e) => setInputMsg(e.target.value)}
-                  placeholder="डॉक्टर को संदेश लिखें..."
-                  className="flex-1 h-9 px-3 rounded-lg border border-slate-200 text-xs bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-600"
-                />
-                <button
-                  type="submit"
-                  className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </form>
+            <div className="lg:col-span-4 flex flex-col">
+              <ConsultationChat
+                roomId={roomId}
+                senderRole="kiosk"
+                senderName={user?.name || "आशा कार्यकर्ता"}
+                title="डॉक्टर संवाद (Doctor Intercom)"
+                className="h-[440px]"
+                quickReplies={[
+                  "मरीज से गहरी सांस लेने को कहा",
+                  "SpO2 दुबारा मापा गया, 98% सामान्य है",
+                  "📸 घाव/जांच कैमरा चालू",
+                  "दवा पर्चा प्राप्त हो गया है",
+                ]}
+              />
             </div>
           </div>
         )}

@@ -22,8 +22,10 @@ import {
   Mic,
   ArrowRight,
   Building2,
-  RefreshCw
+  RefreshCw,
+  UserPlus,
 } from "lucide-react";
+import { getSignalingSocket } from "@/lib/webrtc";
 
 export default function DoctorPortal() {
   const { user, isLoading } = useAuth();
@@ -32,10 +34,68 @@ export default function DoctorPortal() {
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<"ALL" | "RED" | "YELLOW" | "GREEN">("ALL");
   const [activeCallPatientId, setActiveCallPatientId] = useState<number | null>(null);
+  const [realtimePatientNotice, setRealtimePatientNotice] = useState<{
+    name: string;
+    priority?: string;
+    village?: string;
+  } | null>(null);
 
   useEffect(() => {
     console.log("[DoctorPortal] Doctor portal mounted on client.");
     setMounted(true);
+  }, []);
+
+  // Real-time listener for new patient registration from ASHA Kiosk via Socket.io
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const socket = getSignalingSocket();
+
+    const handleNewPatientRegistered = async (data: { patient?: Patient; triage?: TriagePacket }) => {
+      console.log("[DoctorPortal] Real-time new-patient-registered received via Socket.io:", data);
+
+      if (data?.patient) {
+        try {
+          const p = data.patient;
+          const existing = p.id ? await db.patients.get(Number(p.id)) : null;
+          if (!existing) {
+            await db.patients.put(p);
+          }
+        } catch (err) {
+          console.error("[DoctorPortal] Failed to save received patient to local Dexie:", err);
+        }
+      }
+
+      if (data?.triage) {
+        try {
+          const t = data.triage;
+          const existingTriage = t.id ? await db.triagePackets.get(Number(t.id)) : null;
+          if (!existingTriage) {
+            await db.triagePackets.put(t);
+          }
+        } catch (err) {
+          console.error("[DoctorPortal] Failed to save received triage to local Dexie:", err);
+        }
+      }
+
+      const patientName = data?.patient?.name || "नया मरीज";
+      setRealtimePatientNotice({
+        name: patientName,
+        priority: data?.triage?.priority || "YELLOW",
+        village: data?.patient?.village,
+      });
+
+      // Automatically auto-clear notification banner after 6 seconds
+      setTimeout(() => {
+        setRealtimePatientNotice(null);
+      }, 6000);
+    };
+
+    socket.on("new-patient-registered", handleNewPatientRegistered);
+
+    return () => {
+      socket.off("new-patient-registered", handleNewPatientRegistered);
+    };
   }, []);
 
   // Safety fallback for mobile browser loading state
@@ -246,6 +306,31 @@ export default function DoctorPortal() {
 
       {/* Main Grid: Queue on Left, Case on Right */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Real-time Patient Registration Alert */}
+        {realtimePatientNotice && (
+          <div className="col-span-12 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-950 flex items-center justify-between shadow-xs animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold leading-tight text-emerald-950 flex items-center gap-2">
+                  <span>नया मरीज कतार में जुड़ा (Live Patient Registered)</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                </p>
+                <p className="text-[11px] text-emerald-800 mt-0.5">
+                  {realtimePatientNotice.name}
+                  {realtimePatientNotice.village ? ` (${realtimePatientNotice.village})` : ""}
+                  {" • "}प्राथमिकता: {realtimePatientNotice.priority}
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] bg-emerald-200/90 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shrink-0">
+              ⚡ रियल-टाइम सिंक
+            </span>
+          </div>
+        )}
+
         {/* Left Column: Triage Incoming Queue */}
         <section className="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col min-h-[580px]">
           <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-2.5">

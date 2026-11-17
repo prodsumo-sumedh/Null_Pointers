@@ -17,6 +17,7 @@ import {
   MediaErrorInfo,
 } from "@/lib/webrtc";
 import TeleconsultationRoom from "@/components/TeleconsultationRoom";
+import ConsultationChat from "@/components/ConsultationChat";
 import {
   Video,
   VideoOff,
@@ -1087,53 +1088,20 @@ function ConsultRoomContent({ params }: { params: Promise<{ id: string }> }) {
 
         {/* Right Column (4 cols): Real-Time Chat & Clinical Notes */}
         <section className="lg:col-span-4 flex flex-col gap-4">
-          {/* Live Chat with Operator */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col h-[280px]">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                स्वास्थ्य केंद्र संवाद (Kiosk Chat)
-              </h3>
-              <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                लाइव सॉकेट
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-2 my-2 pr-1">
-              {chatMessages.length === 0 ? (
-                <div className="text-center py-10 text-slate-400">
-                  <p className="text-xs">अभी कोई संदेश नहीं है।</p>
-                  <p className="text-[11px] mt-0.5">नीचे बॉक्स में संदेश लिखकर बातचीत शुरू करें।</p>
-                </div>
-              ) : (
-                chatMessages.map((msg, i) => (
-                  <div key={i} className="text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
-                      <span className="font-semibold text-slate-700">{msg.sender}</span>
-                      <span>{msg.time}</span>
-                    </div>
-                    <p className="text-slate-800">{msg.text}</p>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <form onSubmit={handleSendMessage} className="flex gap-2 pt-2 border-t border-slate-100">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="संदेश लिखें..."
-                className="flex-1 h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-slate-800"
-              />
-              <button
-                type="submit"
-                className="h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium"
-              >
-                <Send className="w-3.5 h-3.5" />
-              </button>
-            </form>
-          </div>
+          {/* Offline-First Real-Time Chat with Kiosk */}
+          <ConsultationChat
+            roomId={roomId}
+            senderRole="doctor"
+            senderName={user?.name || "Dr. Rajesh Sharma, MD"}
+            title="स्वास्थ्य केंद्र संवाद (Kiosk Chat)"
+            className="h-[340px]"
+            quickReplies={[
+              "कृपया कैमरा घाव पर दिखाएं",
+              "ऑडियो साफ नहीं है",
+              "बीपी और पल्स दोबारा नापें",
+              "पर्चा तैयार किया जा रहा है",
+            ]}
+          />
 
           {/* Clinical SOAP / Doctor Notes */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-1 flex flex-col">
