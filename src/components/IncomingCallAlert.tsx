@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getSignalingSocket } from "@/lib/webrtc";
-import { PhoneCall, PhoneIncoming, PhoneOff, User, Activity, AlertCircle } from "lucide-react";
+import { fetchSyncState, syncAcceptCall, syncEndCall } from "@/lib/syncClient";
+import { PhoneCall, PhoneIncoming, PhoneOff } from "lucide-react";
 import type { Socket } from "socket.io-client";
 
 interface IncomingCallPayload {
@@ -30,14 +31,15 @@ class RingtonePlayer {
     if (this.isPlaying) return;
     this.isPlaying = true;
     try {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) return;
       this.audioCtx = new AudioContextClass();
 
       const ringCycle = () => {
         if (!this.audioCtx || this.audioCtx.state === "closed" || !this.isPlaying) return;
 
-        // Resume AudioContext if browser suspended it before user interaction
         if (this.audioCtx.state === "suspended") {
           this.audioCtx.resume();
         }
@@ -107,90 +109,120 @@ export default function IncomingCallAlert() {
     };
   }, []);
 
+  // 1. Cross-device HTTP Polling sync (Works 100% reliably on Vercel without socket server)
   useEffect(() => {
-    const socket = getSignalingSocket();
-    socketRef.current = socket;
+    // Only Doctor receives incoming calls (per rule: only Kiosk calls, Doctor picks up)
+    if (user?.role !== "doctor") {
+      ringtoneRef.current?.stop();
+      setIncomingCall(null);
+      return;
+    }
 
-    // Handle global incoming call broadcast from another device
-    const handleGlobalCall = (data: IncomingCallPayload) => {
-      console.log("[IncomingCallAlert] Received global call alert:", data);
+    let isMounted = true;
 
-      // Avoid popping up if current user is the caller themselves
-      if (data.role === "doctor" && user?.role === "doctor") return;
-      if (data.role === "kiosk" && user?.role === "kiosk" && pathname.startsWith("/kiosk/call")) return;
+    const pollSync = async () => {
+      const state = await fetchSyncState();
+      if (!isMounted || !state) return;
 
-      // Avoid duplicate alert if doctor is already inside /consult/[id] for this patient
-      const targetConsultPath = `/consult/${data.patientId || 1}`;
-      if (pathname === targetConsultPath) {
-        return;
+      const active = state.activeCall;
+      if (active && active.status === "calling") {
+        // If doctor is already inside the consult room for this patient, don't show popup
+        const targetPath = `/consult/${active.patientId}`;
+        if (pathname === targetPath) {
+          ringtoneRef.current?.stop();
+          setIncomingCall(null);
+          return;
+        }
+
+        // Show alert and ring
+        setIncomingCall({
+          callerId: "kiosk-peer",
+          callerName: active.callerName || "कियोस्क ऑपरेटर (सुनीता देवी)",
+          role: "kiosk",
+          roomId: active.roomId,
+          patientId: active.patientId,
+          patientName: active.patientName,
+        });
+        ringtoneRef.current?.start();
+      } else {
+        // Call ended or accepted
+        setIncomingCall((curr) => {
+          if (curr) {
+            ringtoneRef.current?.stop();
+            return null;
+          }
+          return null;
+        });
       }
-
-      setIncomingCall(data);
-      ringtoneRef.current?.start();
     };
 
-    const handleCallDismissed = ({ roomId }: { roomId: string }) => {
-      setIncomingCall((curr) => {
-        if (curr && curr.roomId === roomId) {
-          ringtoneRef.current?.stop();
-          return null;
-        }
-        return curr;
-      });
-    };
-
-    const handleCallAnswered = ({ roomId }: { roomId: string }) => {
-      setIncomingCall((curr) => {
-        if (curr && curr.roomId === roomId) {
-          ringtoneRef.current?.stop();
-          return null;
-        }
-        return curr;
-      });
-    };
-
-    const handleSocketError = (err: Error) => {
-      console.warn("[IncomingCallAlert] Signaling socket notice:", err.message);
-    };
-
-    socket.on("connect_error", handleSocketError);
-    socket.on("global-incoming-call", handleGlobalCall);
-    socket.on("global-call-dismissed", handleCallDismissed);
-    socket.on("global-call-answered", handleCallAnswered);
-    socket.on("call-declined", handleCallDismissed);
-    socket.on("call-ended", handleCallDismissed);
+    pollSync();
+    const interval = setInterval(pollSync, 2000);
 
     return () => {
-      socket.off("connect_error", handleSocketError);
-      socket.off("global-incoming-call", handleGlobalCall);
-      socket.off("global-call-dismissed", handleCallDismissed);
-      socket.off("global-call-answered", handleCallAnswered);
-      socket.off("call-declined", handleCallDismissed);
-      socket.off("call-ended", handleCallDismissed);
+      isMounted = false;
+      clearInterval(interval);
     };
   }, [user?.role, pathname]);
 
-  const handleAccept = () => {
+  // 2. Fallback Socket.io listener for local dev
+  useEffect(() => {
+    try {
+      const socket = getSignalingSocket();
+      socketRef.current = socket;
+
+      const handleGlobalCall = (data: IncomingCallPayload) => {
+        if (user?.role !== "doctor") return;
+        const targetConsultPath = `/consult/${data.patientId || 1}`;
+        if (pathname === targetConsultPath) return;
+
+        setIncomingCall(data);
+        ringtoneRef.current?.start();
+      };
+
+      const handleCallDismissed = () => {
+        setIncomingCall(null);
+        ringtoneRef.current?.stop();
+      };
+
+      socket.on("global-incoming-call", handleGlobalCall);
+      socket.on("global-call-dismissed", handleCallDismissed);
+      socket.on("global-call-answered", handleCallDismissed);
+      socket.on("call-declined", handleCallDismissed);
+      socket.on("call-ended", handleCallDismissed);
+
+      return () => {
+        socket.off("global-incoming-call", handleGlobalCall);
+        socket.off("global-call-dismissed", handleCallDismissed);
+        socket.off("global-call-answered", handleCallDismissed);
+        socket.off("call-declined", handleCallDismissed);
+        socket.off("call-ended", handleCallDismissed);
+      };
+    } catch {}
+  }, [user?.role, pathname]);
+
+  const handleAccept = async () => {
     if (!incomingCall) return;
     ringtoneRef.current?.stop();
 
+    // Signal accept via serverless API
+    await syncAcceptCall(incomingCall.roomId);
+
+    // Also notify socket if available
     if (socketRef.current) {
       socketRef.current.emit("call-accepted", { roomId: incomingCall.roomId });
     }
 
     const patientId = incomingCall.patientId || 1;
-    const dest =
-      user?.role === "kiosk"
-        ? `/kiosk/call?patientId=${patientId}`
-        : `/consult/${patientId}`;
-
     setIncomingCall(null);
-    router.push(dest);
+    router.push(`/consult/${patientId}`);
   };
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
     if (!incomingCall) return;
     ringtoneRef.current?.stop();
+
+    await syncEndCall(incomingCall.roomId);
 
     if (socketRef.current) {
       socketRef.current.emit("call-declined", { roomId: incomingCall.roomId });
@@ -200,10 +232,8 @@ export default function IncomingCallAlert() {
 
   if (!incomingCall) return null;
 
-  const isCallerKiosk = incomingCall.role === "kiosk";
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl border-2 border-emerald-500 shadow-2xl max-w-md w-full p-6 text-center space-y-5 animate-in zoom-in-95 duration-200 mt-12 sm:mt-0">
         {/* Pulsing Ring Icon */}
         <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-600 text-white shadow-xl mx-auto">
@@ -222,9 +252,7 @@ export default function IncomingCallAlert() {
           </h3>
 
           <p className="text-xs text-slate-500 mt-0.5">
-            {isCallerKiosk
-              ? "स्वास्थ्य केंद्र कियोस्क से कॉल आ रही है"
-              : "रिमोट विशेषज्ञ डॉक्टर से वीडियो कॉल"}
+            स्वास्थ्य केंद्र कियोस्क से मरीज परामर्श हेतु वीडियो कॉल
           </p>
         </div>
 
@@ -238,7 +266,7 @@ export default function IncomingCallAlert() {
           </div>
 
           <div className="flex items-center justify-between text-slate-500 text-[11px]">
-            <span>सिग्नलिंग रूम:</span>
+            <span>कंसल्टेशन रूम:</span>
             <span className="font-mono font-medium text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
               {incomingCall.roomId}
             </span>
@@ -260,7 +288,7 @@ export default function IncomingCallAlert() {
             className="min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <PhoneCall className="w-4 h-4" />
-            <span>कॉल उठाएं (Accept)</span>
+            <span>कॉल उठाएं (Pick Up Call)</span>
           </button>
         </div>
       </div>

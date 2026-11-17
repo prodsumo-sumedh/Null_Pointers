@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Patient, TriagePacket, DEFAULT_PATIENTS, DEFAULT_TRIAGE_PACKETS } from "@/lib/db";
 import TeleconsultationRoom from "@/components/TeleconsultationRoom";
+import ConsultationChat from "@/components/ConsultationChat";
+import { fetchSyncState, syncServerDataToDexie, syncAcceptCall } from "@/lib/syncClient";
 import {
   Stethoscope,
   AlertTriangle,
@@ -24,6 +26,8 @@ import {
   Building2,
   RefreshCw,
   UserPlus,
+  MessageSquare,
+  PhoneIncoming,
 } from "lucide-react";
 import { getSignalingSocket } from "@/lib/webrtc";
 
@@ -34,6 +38,13 @@ export default function DoctorPortal() {
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<"ALL" | "RED" | "YELLOW" | "GREEN">("ALL");
   const [activeCallPatientId, setActiveCallPatientId] = useState<number | null>(null);
+  const [showDoctorChat, setShowDoctorChat] = useState(false);
+  const [activeIncomingCall, setActiveIncomingCall] = useState<{
+    status: string;
+    patientId: number;
+    patientName: string;
+    roomId: string;
+  } | null>(null);
   const [realtimePatientNotice, setRealtimePatientNotice] = useState<{
     name: string;
     priority?: string;
@@ -43,6 +54,54 @@ export default function DoctorPortal() {
   useEffect(() => {
     console.log("[DoctorPortal] Doctor portal mounted on client.");
     setMounted(true);
+  }, []);
+
+  // Cross-device HTTP Polling sync (Updates Doctor Hub queue in real-time without refreshing)
+  useEffect(() => {
+    let isMounted = true;
+    let knownPatientCount = 0;
+
+    const pollSync = async () => {
+      const state = await fetchSyncState();
+      if (!isMounted || !state) return;
+
+      // Sync data to Dexie
+      await syncServerDataToDexie(state);
+
+      // Check for incoming call
+      if (state.activeCall && state.activeCall.status === "calling") {
+        setActiveIncomingCall({
+          status: state.activeCall.status,
+          patientId: state.activeCall.patientId,
+          patientName: state.activeCall.patientName,
+          roomId: state.activeCall.roomId,
+        });
+      } else {
+        setActiveIncomingCall(null);
+      }
+
+      // Check if new patient was added
+      if (knownPatientCount > 0 && state.patients.length > knownPatientCount) {
+        const newest = state.patients[0];
+        if (newest) {
+          setRealtimePatientNotice({
+            name: newest.name,
+            village: newest.village,
+            priority: "YELLOW",
+          });
+          setTimeout(() => setRealtimePatientNotice(null), 6000);
+        }
+      }
+      knownPatientCount = state.patients.length;
+    };
+
+    pollSync();
+    const interval = setInterval(pollSync, 2000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Real-time listener for new patient registration from ASHA Kiosk via Socket.io
@@ -468,15 +527,35 @@ export default function DoctorPortal() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveCallPatientId(selectedItem.patientId || 1)}
-                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-                    title="Connect to LiveKit room for this patient"
+                  {activeIncomingCall?.patientId === selectedItem.patientId ? (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await syncAcceptCall(activeIncomingCall.roomId);
+                        router.push(`/consult/${selectedItem.patientId}`);
+                      }}
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/40 animate-pulse cursor-pointer ring-2 ring-emerald-400"
+                    >
+                      <PhoneIncoming className="w-4 h-4 animate-bounce" />
+                      <span>कॉल उठाएं (Pick Up Call)</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/consult/${selectedItem.patientId || 1}`}
+                      className="min-h-[44px] px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                    >
+                      <Video className="w-4 h-4" />
+                      <span>परामर्श रूम (Consult)</span>
+                    </Link>
+                  )}
+
+                  <Link
+                    href={`/rx/${selectedItem.patientId || 1}`}
+                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
                   >
-                    <Video className="w-4 h-4 animate-pulse" />
-                    <span>Join Active Call</span>
-                  </button>
+                    <FileText className="w-4 h-4" />
+                    <span>प्रिस्क्रिप्शन</span>
+                  </Link>
 
                   <span
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
@@ -496,7 +575,7 @@ export default function DoctorPortal() {
               {activeCallPatientId === selectedItem.patientId && (
                 <div className="rounded-2xl border-2 border-emerald-500 overflow-hidden shadow-lg animate-in fade-in zoom-in-95 duration-200">
                   <TeleconsultationRoom
-                    roomName={String(selectedItem.patientId || 1)}
+                    roomName={`aarogya-consult-${selectedItem.patientId || 1}`}
                     participantName={user?.name || "Dr. Rajesh Sharma, MD"}
                     onDisconnect={() => setActiveCallPatientId(null)}
                     title={`मरीज ${selectedItem.patient.name} — Live Doctor Consultation (Room #${selectedItem.patientId})`}
@@ -605,6 +684,42 @@ export default function DoctorPortal() {
           )}
         </section>
       </main>
+
+      {/* Floating Kiosk Operator Chat for Doctor */}
+      {!showDoctorChat ? (
+        <button
+          type="button"
+          onClick={() => setShowDoctorChat(true)}
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 cursor-pointer border-2 border-blue-400 transition-all hover:scale-105 active:scale-95"
+          title="कियोस्क ऑपरेटर से सीधा चैट करें (Chat with Kiosk Operator)"
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span>कियोस्क से चैट (ASHA Chat)</span>
+        </button>
+      ) : (
+        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl border-2 border-blue-500 overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
+          <div className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center border-b border-slate-800">
+            <span className="text-xs font-bold flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-emerald-400" />
+              <span>कियोस्क ऑपरेटर से संवाद (Direct ASHA Chat)</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowDoctorChat(false)}
+              className="text-slate-400 hover:text-white font-bold text-base px-2 py-0.5 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              ×
+            </button>
+          </div>
+          <ConsultationChat
+            roomId="global"
+            senderRole="doctor"
+            senderName={user?.name || "Dr. Rajesh Sharma, MD"}
+            title="स्वास्थ्य केंद्र ऑपरेटर से संदेश"
+            className="h-[440px] rounded-none border-0"
+          />
+        </div>
+      )}
     </div>
   );
 }

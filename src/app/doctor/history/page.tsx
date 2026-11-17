@@ -13,7 +13,9 @@ import {
   TriagePacket,
   DEFAULT_PATIENTS,
   DEFAULT_TRIAGE_PACKETS,
+  DEFAULT_PRESCRIPTIONS,
 } from "@/lib/db";
+import { fetchSyncState, syncServerDataToDexie } from "@/lib/syncClient";
 import {
   Stethoscope,
   Clock,
@@ -48,6 +50,9 @@ export default function DoctorConsultationHistoryPage() {
 
   useEffect(() => {
     setMounted(true);
+    fetchSyncState().then((state) => {
+      if (state) syncServerDataToDexie(state);
+    });
   }, []);
 
   // Fetch Patients, Prescriptions, and Triage Packets from Dexie
@@ -70,15 +75,16 @@ export default function DoctorConsultationHistoryPage() {
     useLiveQuery(
       async () => {
         try {
-          return await db.prescriptions.reverse().toArray();
+          const list = await db.prescriptions.reverse().toArray();
+          return list && list.length > 0 ? list : DEFAULT_PRESCRIPTIONS;
         } catch (err) {
           console.error("[DoctorHistory] Error reading prescriptions:", err);
-          return [];
+          return DEFAULT_PRESCRIPTIONS;
         }
       },
       [],
-      []
-    ) ?? [];
+      DEFAULT_PRESCRIPTIONS
+    ) ?? DEFAULT_PRESCRIPTIONS;
 
   const triagePackets =
     useLiveQuery(

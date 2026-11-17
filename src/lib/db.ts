@@ -114,7 +114,86 @@ export const DEFAULT_TRIAGE_PACKETS: TriagePacket[] = [
   },
 ];
 
-export const DEFAULT_PRESCRIPTIONS: Prescription[] = [];
+export const DEFAULT_PRESCRIPTIONS: Prescription[] = [
+  {
+    id: 1,
+    patientId: 1,
+    doctorId: "DOC-7842",
+    doctorName: "Dr. Rajesh Sharma, MD",
+    diagnosis: "तीव्र ब्रोंकाइटिस व मौसमी बुखार (Acute Bronchitis)",
+    medications: [
+      {
+        saltName: "Paracetamol (500mg)",
+        genericCode: "GEN-01",
+        morning: 1,
+        noon: 0,
+        night: 1,
+        withFood: true,
+        days: 5,
+        instructionsHi: "भोजन के बाद गर्म पानी से लें।",
+      },
+      {
+        saltName: "Amoxicillin (500mg)",
+        genericCode: "GEN-02",
+        morning: 1,
+        noon: 0,
+        night: 1,
+        withFood: true,
+        days: 5,
+        instructionsHi: "सुबह व रात खाने के बाद पूरा 5 दिन का कोर्स लें।",
+      },
+      {
+        saltName: "Cetirizine (10mg)",
+        genericCode: "GEN-05",
+        morning: 0,
+        noon: 0,
+        night: 1,
+        withFood: false,
+        days: 3,
+        instructionsHi: "रात में सोने से पहले लें।",
+      },
+    ],
+    instructionsHi: "पर्याप्त गुनगुना पानी पिएं। ठंडी चीजों से परहेज रखें और 5 दिन बाद पुनः जांच कराएं।",
+    instructionsEn: "Drink warm fluids, rest well. Follow up in 5 days.",
+    qrVerificationId: "RX-179493-1",
+    status: "dispensed",
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+  },
+  {
+    id: 2,
+    patientId: 2,
+    doctorId: "DOC-7842",
+    doctorName: "Dr. Rajesh Sharma, MD",
+    diagnosis: "संधिवात व हल्का उच्च रक्तचाप (Osteoarthritis & Mild HTN)",
+    medications: [
+      {
+        saltName: "Diclofenac Gel (1%)",
+        genericCode: "GEN-08",
+        morning: 1,
+        noon: 0,
+        night: 1,
+        withFood: false,
+        days: 7,
+        instructionsHi: "घुटने पर हल्के हाथ से मालिश करें।",
+      },
+      {
+        saltName: "Amlodipine (5mg)",
+        genericCode: "GEN-12",
+        morning: 1,
+        noon: 0,
+        night: 0,
+        withFood: true,
+        days: 14,
+        instructionsHi: "प्रतिदिन सुबह नाश्ते के बाद एक गोली लें।",
+      },
+    ],
+    instructionsHi: "नमक का सेवन कम करें। हल्का व्यायाम करें और भारी वजन न उठाएं।",
+    instructionsEn: "Reduce salt intake. Gentle knee mobility exercises.",
+    qrVerificationId: "RX-179493-2",
+    status: "dispensed",
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+];
 
 export class RuralTelemedDatabase extends Dexie {
   patients!: Table<Patient, number>;
@@ -198,6 +277,10 @@ export async function ensureInitialData() {
         status: "synced",
         createdAt: new Date().toISOString(),
       });
+
+      for (const rx of DEFAULT_PRESCRIPTIONS) {
+        await db.prescriptions.add(rx);
+      }
       console.log("[Dexie] Initial demo data seeded successfully.");
     }
     isDbInitialized = true;

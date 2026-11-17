@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, ChatMessage } from "@/lib/db";
 import { getSignalingSocket } from "@/lib/webrtc";
+import { syncSendChat } from "@/lib/syncClient";
 import type { Socket } from "socket.io-client";
 
 export interface AutoSyncState {
@@ -56,8 +57,6 @@ export function useAutoSync(roomId?: string): AutoSyncState {
 
     try {
       setIsSyncing(true);
-      const socket = getSignalingSocket();
-      socketRef.current = socket;
 
       // Query all queued messages to sync
       const query = db.chatMessages.where("status").equals("queued");
@@ -70,23 +69,26 @@ export function useAutoSync(roomId?: string): AutoSyncState {
 
       console.log(`[useAutoSync] Starting sync of ${pending.length} queued messages...`);
 
-      // Ensure socket is connected before emitting
-      if (!socket.connected) {
-        socket.connect();
-      }
-
       let syncedCount = 0;
       for (const msg of pending) {
-        // Emit through socket signaling channel
-        socket.emit("chat-message", {
-          roomId: msg.roomId,
-          senderRole: msg.senderRole,
-          text: msg.text,
-          status: "synced",
-          timestamp: msg.timestamp,
-          sender: msg.senderRole === "doctor" ? "डॉक्टर (Doctor)" : "आशा कार्यकर्ता (ASHA)",
-          time: new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        });
+        // 1. Sync through HTTP Serverless Sync API
+        await syncSendChat(msg.roomId, msg.senderRole, msg.text);
+
+        // 2. Also emit to socket if connected
+        try {
+          const socket = socketRef.current || getSignalingSocket();
+          if (socket && socket.connected) {
+            socket.emit("chat-message", {
+              roomId: msg.roomId,
+              senderRole: msg.senderRole,
+              text: msg.text,
+              status: "synced",
+              timestamp: msg.timestamp,
+              sender: msg.senderRole === "doctor" ? "डॉक्टर (Doctor)" : "आशा कार्यकर्ता (ASHA)",
+              time: new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            });
+          }
+        } catch {}
 
         // Mark as synced in Dexie IndexedDB
         if (msg.id) {
@@ -96,7 +98,7 @@ export function useAutoSync(roomId?: string): AutoSyncState {
       }
 
       setLastSyncedAt(new Date());
-      console.log(`[useAutoSync] Successfully synced ${syncedCount} queued messages to signaling server.`);
+      console.log(`[useAutoSync] Successfully synced ${syncedCount} queued messages.`);
       setIsSyncing(false);
       return syncedCount;
     } catch (err) {

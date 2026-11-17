@@ -6,6 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Patient, Prescription, PrescribedMedicationItem, DEFAULT_PATIENTS } from "@/lib/db";
 import { GENERIC_FORMULARY, GenericDrug } from "@/lib/janAushadhiFormulary";
+import { syncDispensePrescription } from "@/lib/syncClient";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   Printer,
@@ -26,6 +28,7 @@ function RxBuilderContent({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const patientIdNum = parseInt(unwrappedParams.id, 10) || 1;
   const { user } = useAuth();
+  const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,17 +133,32 @@ function RxBuilderContent({ params }: { params: Promise<{ id: string }> }) {
         patientId: patientIdNum,
         doctorId: user?.role === "doctor" ? user.id : "doc-01",
         doctorName: user?.role === "doctor" ? user.name : "Dr. Rajesh Sharma, MD",
-        diagnosis,
+        diagnosis: diagnosis || "सामान्य संक्रमण व मौसमी लक्षण (Clinical Impression Recorded)",
         medications: selectedMedications,
-        instructionsHi: doctorNotes,
+        instructionsHi: doctorNotes || "दवाएं समय पर लें।",
         instructionsEn: "Drink plenty of fluids. Rest well.",
         qrVerificationId: `RX-${Date.now()}-${patientIdNum}`,
-        status: "prescribed",
+        status: "dispensed",
         createdAt: new Date().toISOString(),
       };
-      await db.prescriptions.add(rx);
+      
+      const newId = await db.prescriptions.add(rx);
+      
+      // Update patient's triage packet status
+      try {
+        const matchingTriage = await db.triagePackets.where("patientId").equals(patientIdNum).first();
+        if (matchingTriage?.id) {
+          await db.triagePackets.update(matchingTriage.id, { status: "synced" });
+        }
+      } catch {}
+
+      // Cross-device broadcast to serverless sync API
+      await syncDispensePrescription({ ...rx, id: Number(newId) });
+
       setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 3000);
+      setTimeout(() => {
+        router.push("/doctor/history");
+      }, 1500);
     } catch (err) {
       console.error(err);
     }

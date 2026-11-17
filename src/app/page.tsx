@@ -10,6 +10,8 @@ import { db, Patient, TriagePacket, DEFAULT_PATIENTS, DEFAULT_TRIAGE_PACKETS } f
 import { VERNACULAR_TRIAGE_KNOWLEDGE, VernacularSymptom } from "@/lib/vernacularTriage";
 import { getSignalingSocket } from "@/lib/webrtc";
 import { useLanguage } from "@/context/LanguageContext";
+import { syncRegisterPatient, fetchSyncState, syncServerDataToDexie } from "@/lib/syncClient";
+import ConsultationChat from "@/components/ConsultationChat";
 import {
   UserPlus,
   Users,
@@ -29,7 +31,8 @@ import {
   FileText,
   Activity,
   Plus,
-  Printer
+  Printer,
+  MessageSquare,
 } from "lucide-react";
 
 export default function HealthStationDashboard() {
@@ -51,6 +54,7 @@ export default function HealthStationDashboard() {
 
   // Vitals & Symptoms
   const [showVitals, setShowVitals] = useState(false);
+  const [showKioskChat, setShowKioskChat] = useState(false);
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [bloodPressure, setBloodPressure] = useState("");
   const [spo2, setSpo2] = useState("");
@@ -80,6 +84,16 @@ export default function HealthStationDashboard() {
     if (!isLoading && user?.role === "doctor") {
       router.push("/doctor");
     }
+
+    const pollSync = async () => {
+      const state = await fetchSyncState();
+      if (state) {
+        await syncServerDataToDexie(state);
+      }
+    };
+    pollSync();
+    const interval = setInterval(pollSync, 2500);
+    return () => clearInterval(interval);
   }, [user, isLoading, router]);
 
   // Safety fallback: Release mounting spinner after 1.5s to prevent permanent hang on mobile
@@ -216,7 +230,10 @@ export default function HealthStationDashboard() {
         createdTriagePacket = { ...triageData, id: Number(triageId) };
       }
 
-      // Real-time broadcast to Doctor Hub via Socket.io
+      // Cross-device broadcast to serverless sync API
+      await syncRegisterPatient({ ...newPatient, id: Number(newPatientId) }, createdTriagePacket);
+
+      // Real-time broadcast to Doctor Hub via Socket.io fallback
       try {
         if (typeof window !== "undefined") {
           const socket = getSignalingSocket();
@@ -265,6 +282,9 @@ export default function HealthStationDashboard() {
         createdAt: new Date().toISOString(),
       };
       const newTriageId = await db.triagePackets.add(triageData);
+
+      // Cross-device broadcast to serverless sync API
+      await syncRegisterPatient(activePatientForTriage, { ...triageData, id: Number(newTriageId) });
 
       // Real-time broadcast to Doctor Hub
       try {
@@ -1045,6 +1065,43 @@ export default function HealthStationDashboard() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Persistent Floating Teleconsultant Chat on Kiosk */}
+      {!showKioskChat ? (
+        <button
+          type="button"
+          onClick={() => setShowKioskChat(true)}
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 cursor-pointer border-2 border-emerald-400 transition-all hover:scale-105 active:scale-95"
+          title="डॉक्टर से सीधा चैट करें (Low bandwidth teleconsultant chat)"
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span>डॉक्टर से चैट (Teleconsultant Chat)</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping" />
+        </button>
+      ) : (
+        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
+          <div className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center border-b border-slate-800">
+            <span className="text-xs font-bold flex items-center gap-2">
+              <Stethoscope className="w-4 h-4 text-emerald-400" />
+              <span>टेली-कंसल्टेंट डॉक्टर से चैट (2G / Low Internet Ready)</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowKioskChat(false)}
+              className="text-slate-400 hover:text-white font-bold text-base px-2 py-0.5 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              ×
+            </button>
+          </div>
+          <ConsultationChat
+            roomId="global"
+            senderRole="kiosk"
+            senderName={user?.name || "कियोस्क ऑपरेटर (सुनीता देवी)"}
+            title="रिमोट विशेषज्ञ डॉक्टर से संवाद"
+            className="h-[440px] rounded-none border-0"
+          />
         </div>
       )}
 
