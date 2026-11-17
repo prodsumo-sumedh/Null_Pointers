@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Patient, TriagePacket, DEFAULT_PATIENTS, DEFAULT_TRIAGE_PACKETS } from "@/lib/db";
 import TeleconsultationRoom from "@/components/TeleconsultationRoom";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Video,
   ArrowLeft,
@@ -27,6 +28,7 @@ function AshaTriageContent({ params }: { params: Promise<{ patientId: string }> 
   const unwrappedParams = use(params);
   const patientIdNum = parseInt(unwrappedParams.patientId, 10) || 1;
   const { user, isLoading } = useAuth();
+  const { t, language } = useLanguage();
 
   const [mounted, setMounted] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
@@ -115,7 +117,7 @@ function AshaTriageContent({ params }: { params: Promise<{ patientId: string }> 
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                  <span>आशा ट्राइएज व टेली-परामर्श</span>
+                  <span>{t("triageAssessment", "आशा ट्राइएज व टेली-परामर्श")}</span>
                   <span className="hidden sm:inline text-xs text-slate-400 font-normal">| ASHA Triage & Video Room</span>
                 </h1>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200">

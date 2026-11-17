@@ -9,6 +9,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db, Patient, TriagePacket, DEFAULT_PATIENTS, DEFAULT_TRIAGE_PACKETS } from "@/lib/db";
 import { VERNACULAR_TRIAGE_KNOWLEDGE, VernacularSymptom } from "@/lib/vernacularTriage";
 import { getSignalingSocket } from "@/lib/webrtc";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   UserPlus,
   Users,
@@ -34,6 +35,7 @@ import {
 export default function HealthStationDashboard() {
   const formId = useId();
   const { user, isLoading } = useAuth();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -543,10 +545,10 @@ export default function HealthStationDashboard() {
               <UserPlus className="w-5 h-5 text-emerald-600" />
               <div>
                 <h2 className="text-base font-bold text-slate-900">
-                  नया मरीज पंजीकरण (Register Patient)
+                  {t("registerPatient", "नया मरीज पंजीकरण")}
                 </h2>
                 <p className="text-xs text-slate-500">
-                  मरीज की सामान्य जानकारी भरें
+                  {t("patientName")}, {t("age")}, {t("village")}
                 </p>
               </div>
             </div>
@@ -555,7 +557,7 @@ export default function HealthStationDashboard() {
               {/* Full Name */}
               <div>
                 <label htmlFor={`${formId}-name`} className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  मरीज का नाम (Name) <span className="text-rose-500">*</span>
+                  {t("patientName", "मरीज का नाम")} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   id={`${formId}-name`}
@@ -572,7 +574,7 @@ export default function HealthStationDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label htmlFor={`${formId}-age`} className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    उम्र (Age) <span className="text-rose-500">*</span>
+                    {t("age", "उम्र")} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     id={`${formId}-age`}
@@ -589,7 +591,7 @@ export default function HealthStationDashboard() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    लिंग (Gender)
+                    {t("gender", "लिंग")}
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
                     {(["Female", "Male", "Other"] as const).map((g) => (
@@ -603,7 +605,7 @@ export default function HealthStationDashboard() {
                             : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
-                        {g === "Female" ? "महिला" : g === "Male" ? "पुरुष" : "अन्य"}
+                        {g === "Female" ? t("female", "महिला") : g === "Male" ? t("male", "पुरुष") : t("other", "अन्य")}
                       </button>
                     ))}
                   </div>
@@ -614,7 +616,7 @@ export default function HealthStationDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label htmlFor={`${formId}-village`} className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    गाँव (Village) <span className="text-rose-500">*</span>
+                    {t("village", "गाँव (Village)")} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     id={`${formId}-village`}
@@ -629,7 +631,7 @@ export default function HealthStationDashboard() {
 
                 <div>
                   <label htmlFor={`${formId}-phone`} className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    मोबाइल नंबर (Phone)
+                    {t("mobileNumber", "मोबाइल नंबर (Phone)")}
                   </label>
                   <input
                     id={`${formId}-phone`}
@@ -645,7 +647,7 @@ export default function HealthStationDashboard() {
               {/* ABHA ID */}
               <div>
                 <label htmlFor={`${formId}-abha`} className="block text-xs font-semibold text-slate-700 mb-1.5 flex justify-between">
-                  <span>आभा आईडी (ABHA ID)</span>
+                  <span>{t("abhaId", "आभा आईडी (ABHA ID)")}</span>
                   <span className="text-[11px] text-slate-400 font-normal">वैकल्पिक</span>
                 </label>
                 <input
@@ -687,7 +689,7 @@ export default function HealthStationDashboard() {
                   type="text"
                   value={chiefComplaint}
                   onChange={(e) => setChiefComplaint(e.target.value)}
-                  placeholder="मुख्य समस्या (जैसे बुखार, खांसी, दर्द)..."
+                  placeholder={t("chiefComplaint", "मुख्य समस्या (जैसे बुखार, खांसी, दर्द)...")}
                   className="w-full min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base focus:border-emerald-500 focus:outline-none bg-slate-50/50"
                 />
               </div>
@@ -773,7 +775,7 @@ export default function HealthStationDashboard() {
                 className="w-full min-h-[50px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-base font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer"
               >
                 <CheckCircle2 className="w-5 h-5" />
-                <span>मरीज दर्ज करें (Save Patient)</span>
+                <span>{t("savePatient", "मरीज दर्ज करें (Save Patient)")}</span>
               </button>
             </form>
           </section>
@@ -784,10 +786,10 @@ export default function HealthStationDashboard() {
             <div className="pb-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900">
-                  मरीज कतार (Patient Queue)
+                  {t("patientQueue", "मरीज कतार (Patient Queue)")}
                 </h2>
                 <p className="text-xs text-slate-500">
-                  परामर्श के लिए प्रतीक्षारत मरीज
+                  {t("waitingPatients", "परामर्श के लिए प्रतीक्षारत मरीज")}
                 </p>
               </div>
 
@@ -799,7 +801,7 @@ export default function HealthStationDashboard() {
                     onChange={(e) => setSelectedVillageFilter(e.target.value)}
                     className="min-h-[44px] sm:h-9 px-3 rounded-xl border border-slate-200 text-sm sm:text-xs bg-slate-50 text-slate-700 font-medium"
                   >
-                    <option value="ALL">सभी गाँव</option>
+                    <option value="ALL">{t("all", "सभी गाँव")}</option>
                     {villagesList.map((v) => (
                       <option key={v} value={v}>
                         {v}
@@ -817,7 +819,7 @@ export default function HealthStationDashboard() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="नाम, फ़ोन नंबर या गाँव से खोजें..."
+                placeholder={t("searchPlaceholder", "नाम, फ़ोन नंबर या गाँव से खोजें...")}
                 className="w-full min-h-[48px] pl-10 pr-4 rounded-xl border border-slate-200 text-base focus:border-slate-800 bg-slate-50/50"
               />
             </div>

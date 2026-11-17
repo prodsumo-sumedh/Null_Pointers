@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage, Language } from "@/context/LanguageContext";
 import {
   HeartPulse,
   Building2,
@@ -18,7 +19,8 @@ import {
   ShieldCheck,
   ChevronDown,
   PhoneCall,
-  Printer
+  Printer,
+  Languages,
 } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
@@ -26,6 +28,7 @@ import { db } from "@/lib/db";
 export default function Navigation() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [isOnline, setIsOnline] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -94,9 +97,9 @@ export default function Navigation() {
               className="text-[10px] text-slate-400 font-normal hidden sm:block"
             >
               {mounted && user?.role === "doctor"
-                ? "विशेषज्ञ डॉक्टर हब (Doctor Hub)"
+                ? t("doctorSubtitle")
                 : mounted && user?.role === "kiosk"
-                ? "स्वास्थ्य केंद्र कियोस्क (Health Station)"
+                ? t("kioskSubtitle")
                 : "Rural Telemedicine Network"}
             </p>
           </div>
@@ -117,8 +120,8 @@ export default function Navigation() {
                   }`}
                 >
                   <Building2 className="w-4 h-4 shrink-0" />
-                  <span className="hidden md:inline">पंजीकरण व कतार</span>
-                  <span className="md:hidden">कतार</span>
+                  <span className="hidden md:inline">{t("regAndQueue")}</span>
+                  <span className="md:hidden">{t("patientQueue")}</span>
                 </Link>
 
                 <Link
@@ -130,7 +133,7 @@ export default function Navigation() {
                   }`}
                 >
                   <PhoneCall className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="hidden md:inline">डॉक्टर कॉल रिसीवर</span>
+                  <span className="hidden md:inline">{t("callReceiver")}</span>
                   <span className="md:hidden">कॉल</span>
                 </Link>
 
@@ -143,7 +146,7 @@ export default function Navigation() {
                   }`}
                 >
                   <Printer className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="hidden md:inline">दवा पर्चा व प्रिंट</span>
+                  <span className="hidden md:inline">{t("prescriptions")}</span>
                   <span className="md:hidden">पर्चा</span>
                   {rxCount > 0 && (
                     <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-emerald-800 text-emerald-200 text-[10px] font-bold">
@@ -166,8 +169,8 @@ export default function Navigation() {
                   }`}
                 >
                   <Stethoscope className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">केस कतार (Doctor Hub)</span>
-                  <span className="sm:hidden">कतार</span>
+                  <span className="hidden sm:inline">{t("patientQueue")} (Doctor Hub)</span>
+                  <span className="sm:hidden">{t("patientQueue")}</span>
                 </Link>
 
                 <Link
@@ -179,7 +182,7 @@ export default function Navigation() {
                   }`}
                 >
                   <Video className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">टेली-परामर्श (Tele-Consult)</span>
+                  <span className="hidden sm:inline">{t("teleconsult")}</span>
                   <span className="sm:hidden">परामर्श</span>
                 </Link>
 
@@ -192,7 +195,7 @@ export default function Navigation() {
                   }`}
                 >
                   <FileText className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">प्रिस्क्रिप्शन (Prescription)</span>
+                  <span className="hidden sm:inline">प्रिस्क्रिप्शन</span>
                   <span className="sm:hidden">पर्चा</span>
                 </Link>
               </>
@@ -200,8 +203,23 @@ export default function Navigation() {
           </nav>
         )}
 
-        {/* Right Section: Connection Pill & User Profile / Login Links */}
+        {/* Right Section: Language Switcher, Connection Pill & User Profile */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Language Switcher Dropdown */}
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-semibold text-white min-h-[36px] hover:border-slate-600 transition-colors">
+            <Languages className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              aria-label="भाषा चुनें (Select Language)"
+              className="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="hi" className="bg-slate-900 text-white">हिंदी</option>
+              <option value="mr" className="bg-slate-900 text-white">मराठी</option>
+              <option value="en" className="bg-slate-900 text-white">English</option>
+            </select>
+          </div>
+
           {/* Connection Status Pill */}
           {mounted && (
             <div className="flex items-center gap-1.5">

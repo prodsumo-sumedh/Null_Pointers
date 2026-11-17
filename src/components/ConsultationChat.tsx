@@ -5,6 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db, ChatMessage } from "@/lib/db";
 import { getSignalingSocket } from "@/lib/webrtc";
 import { useAutoSync } from "@/hooks/useAutoSync";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Send,
   Wifi,
@@ -15,6 +16,8 @@ import {
   RefreshCw,
   MessageSquare,
   AlertCircle,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import type { Socket } from "socket.io-client";
 
@@ -39,8 +42,116 @@ export default function ConsultationChat({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
+  // Multilingual Context
+  const { language, t, speechLangCode } = useLanguage();
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+
   // Hook for automatic offline-to-online synchronization
   const { isOnline, isSyncing, queuedCount, syncPendingMessages } = useAutoSync(roomId);
+
+  // Stop voice recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // Ignore
+        }
+      }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // Ignore
+        }
+      }
+      setIsListening(false);
+      return;
+    }
+
+    // Check if browser is offline - Speech API requires an active internet connection
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setSpeechError(
+        t("speechOfflineError", "वॉइस टाइपिंग के लिए इंटरनेट कनेक्शन आवश्यक है (Speech requires active network).")
+      );
+      setTimeout(() => setSpeechError(null), 4000);
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const windowWithSpeech = window as unknown as {
+      SpeechRecognition?: any;
+      webkitSpeechRecognition?: any;
+    };
+
+    const SpeechRecognitionConstructor =
+      windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionConstructor) {
+      setSpeechError(
+        t("speechNotSupported", "इस ब्राउज़र में वॉइस टाइपिंग समर्थित नहीं है (Speech API not supported).")
+      );
+      setTimeout(() => setSpeechError(null), 4000);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognitionConstructor();
+      recognitionRef.current = recognition;
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = speechLangCode; // e.g. 'hi-IN', 'en-IN', or 'mr-IN'
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpeechError(null);
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onresult = (event: any) => {
+        const transcript = event?.results?.[0]?.[0]?.transcript;
+        if (transcript) {
+          setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onerror = (event: any) => {
+        console.warn("[ConsultationChat] Speech recognition error:", event.error);
+        if (event.error === "network") {
+          setSpeechError(
+            t("speechOfflineError", "नेटवर्क त्रुटि: वॉइस टाइपिंग के लिए इंटरनेट आवश्यक है।")
+          );
+        } else if (event.error === "not-allowed" || event.error === "permission-denied") {
+          setSpeechError("माइक्रोफ़ोन की अनुमति अस्वीकृत है (Microphone permission blocked).");
+        } else if (event.error !== "no-speech") {
+          setSpeechError(`स्पीच त्रुटि: ${event.error}`);
+        }
+        setIsListening(false);
+        setTimeout(() => setSpeechError(null), 4000);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("[ConsultationChat] Speech start failed:", err);
+      setIsListening(false);
+      setSpeechError("स्पीच रिकॉग्निशन शुरू नहीं हो सकी।");
+      setTimeout(() => setSpeechError(null), 4000);
+    }
+  };
 
   // Reactive live query from IndexedDB
   const messages =
@@ -346,6 +457,30 @@ export default function ConsultationChat({
         </div>
       )}
 
+      {/* Voice-to-Text Status / Error Banner */}
+      {isListening && (
+        <div className="px-3.5 py-1.5 bg-rose-50 border-t border-rose-200 text-rose-700 text-xs flex items-center justify-between animate-pulse shrink-0">
+          <div className="flex items-center gap-2 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping" />
+            <span>{t("listening", "सुन रहे हैं... कृपया बोलें")} ({speechLangCode})</span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleListening}
+            className="text-[11px] underline font-bold hover:text-rose-900 cursor-pointer"
+          >
+            रोकें (Stop)
+          </button>
+        </div>
+      )}
+
+      {speechError && (
+        <div className="px-3.5 py-1.5 bg-amber-50 border-t border-amber-200 text-amber-900 text-xs flex items-center gap-1.5 shrink-0">
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>{speechError}</span>
+        </div>
+      )}
+
       {/* Input Field & Submit Action */}
       <form
         onSubmit={(e) => {
@@ -359,18 +494,44 @@ export default function ConsultationChat({
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder={
-            isOnline ? "संदेश लिखें (Type a message)..." : "ऑफ़लाइन संदेश लिखें (Will sync when online)..."
+            isOnline
+              ? t("typeMessage", "संदेश लिखें (Type a message)...")
+              : t("typeOfflineMessage", "ऑफ़लाइन संदेश लिखें (Will sync when online)...")
           }
           className="flex-1 min-h-[48px] px-3.5 rounded-xl border border-slate-200 text-base bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all text-slate-800"
         />
+
+        {/* Microphone Dictation Button */}
+        <button
+          type="button"
+          onClick={toggleListening}
+          className={`min-h-[48px] min-w-[48px] px-3 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+            isListening
+              ? "bg-rose-600 hover:bg-rose-500 text-white border-rose-600 animate-pulse shadow-md"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 hover:border-slate-300"
+          }`}
+          title={
+            isListening
+              ? "माइक्रोफ़ोन बंद करें (Stop Mic)"
+              : `${t("voiceTyping", "बोलकर लिखें")} (${speechLangCode})`
+          }
+        >
+          {isListening ? (
+            <MicOff className="w-4 h-4 text-white" />
+          ) : (
+            <Mic className="w-4 h-4 text-slate-700" />
+          )}
+        </button>
+
+        {/* Submit Send Button */}
         <button
           type="submit"
           disabled={!inputText.trim()}
           className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition-all cursor-pointer shrink-0"
-          title="संदेश भेजें (Send)"
+          title={`${t("send", "भेजें")} (Send)`}
         >
           <Send className="w-4 h-4" />
-          <span className="hidden sm:inline">भेजें</span>
+          <span className="hidden sm:inline">{t("send", "भेजें")}</span>
         </button>
       </form>
     </div>
