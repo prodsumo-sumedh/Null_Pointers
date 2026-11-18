@@ -119,7 +119,7 @@ export async function syncEndCall(roomId?: string) {
 /**
  * Send real-time chat message across devices
  */
-export async function syncSendChat(roomId: string, senderRole: string, text: string) {
+export async function syncSendChat(roomId: string, senderRole: string, text: string, timestamp?: string) {
   try {
     const res = await fetch("/api/sync", {
       method: "POST",
@@ -129,6 +129,7 @@ export async function syncSendChat(roomId: string, senderRole: string, text: str
         roomId,
         senderRole,
         text,
+        timestamp,
       }),
     });
     return await res.json();
@@ -197,12 +198,20 @@ export async function syncServerDataToDexie(state: SyncServerState) {
       }
     }
 
-    // 4. Sync chat messages
+    // 4. Sync chat messages with strict deduplication
     for (const msg of state.chatMessages) {
       const existing = await db.chatMessages
-        .where("timestamp")
-        .equals(msg.timestamp)
+        .where("roomId")
+        .equals(msg.roomId)
+        .and(
+          (m) =>
+            m.senderRole === msg.senderRole &&
+            m.text.trim() === msg.text.trim() &&
+            (m.timestamp === msg.timestamp ||
+              Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 10000)
+        )
         .first();
+
       if (!existing) {
         await db.chatMessages.add({
           roomId: msg.roomId,
@@ -211,6 +220,8 @@ export async function syncServerDataToDexie(state: SyncServerState) {
           status: "synced",
           timestamp: msg.timestamp,
         });
+      } else if (existing.id && existing.status === "queued") {
+        await db.chatMessages.update(existing.id, { status: "synced" });
       }
     }
   } catch (err) {

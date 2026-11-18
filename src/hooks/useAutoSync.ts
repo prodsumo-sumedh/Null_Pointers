@@ -72,7 +72,7 @@ export function useAutoSync(roomId?: string): AutoSyncState {
       let syncedCount = 0;
       for (const msg of pending) {
         // 1. Sync through HTTP Serverless Sync API
-        await syncSendChat(msg.roomId, msg.senderRole, msg.text);
+        await syncSendChat(msg.roomId, msg.senderRole, msg.text, msg.timestamp);
 
         // 2. Also emit to socket if connected
         try {

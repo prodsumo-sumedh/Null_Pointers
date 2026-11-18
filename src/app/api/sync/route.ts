@@ -130,21 +130,40 @@ export async function POST(req: NextRequest) {
       }
 
       case "send_chat": {
-        const { roomId, senderRole, text } = body;
+        const { roomId, senderRole, text, timestamp } = body;
         if (text && text.trim()) {
-          const newMsg: ChatMessage = {
-            roomId: roomId || "global",
-            senderRole: senderRole || "kiosk",
-            text: text.trim(),
-            status: "synced",
-            timestamp: new Date().toISOString(),
-          };
-          store.chatMessages.push(newMsg);
-          // Keep chat messages array under 200 items
-          if (store.chatMessages.length > 200) {
-            store.chatMessages = store.chatMessages.slice(-150);
+          const trimmedText = text.trim();
+          const targetRoom = roomId || "global";
+          const role = senderRole || "kiosk";
+          const msgTimestamp = timestamp || new Date().toISOString();
+
+          // Deduplicate on server: check if identical message arrived within 5 seconds
+          const alreadyExists = store.chatMessages.some(
+            (m) =>
+              m.roomId === targetRoom &&
+              m.senderRole === role &&
+              m.text === trimmedText &&
+              (m.timestamp === msgTimestamp ||
+                Math.abs(new Date(m.timestamp).getTime() - new Date(msgTimestamp).getTime()) < 5000)
+          );
+
+          if (!alreadyExists) {
+            const newMsg: ChatMessage = {
+              roomId: targetRoom,
+              senderRole: role,
+              text: trimmedText,
+              status: "synced",
+              timestamp: msgTimestamp,
+            };
+            store.chatMessages.push(newMsg);
+            // Keep chat messages array under 200 items
+            if (store.chatMessages.length > 200) {
+              store.chatMessages = store.chatMessages.slice(-150);
+            }
+            return NextResponse.json({ success: true, message: newMsg });
+          } else {
+            return NextResponse.json({ success: true, deduplicated: true });
           }
-          return NextResponse.json({ success: true, message: newMsg });
         }
         break;
       }

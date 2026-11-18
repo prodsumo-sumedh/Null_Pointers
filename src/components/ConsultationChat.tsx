@@ -42,6 +42,7 @@ export default function ConsultationChat({
   const [inputText, setInputText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const isSendingRef = useRef(false);
 
   // Multilingual Context
   const { language, t, speechLangCode } = useLanguage();
@@ -173,6 +174,43 @@ export default function ConsultationChat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
+  // Automatic cleanup of any duplicate messages in local Dexie IndexedDB
+  useEffect(() => {
+    let isMounted = true;
+    const deduplicateLocalMessages = async () => {
+      try {
+        const all = await db.chatMessages.where("roomId").equals(roomId).sortBy("timestamp");
+        const toDelete: number[] = [];
+        for (let i = 0; i < all.length; i++) {
+          for (let j = i + 1; j < all.length; j++) {
+            const m1 = all[i];
+            const m2 = all[j];
+            if (
+              m1.senderRole === m2.senderRole &&
+              m1.text.trim() === m2.text.trim() &&
+              Math.abs(new Date(m1.timestamp).getTime() - new Date(m2.timestamp).getTime()) < 15000
+            ) {
+              if (m2.id && !toDelete.includes(m2.id)) {
+                toDelete.push(m2.id);
+              }
+            }
+          }
+        }
+        if (toDelete.length > 0 && isMounted) {
+          console.log(`[ConsultationChat] Purging ${toDelete.length} duplicate messages from local database.`);
+          await db.chatMessages.bulkDelete(toDelete);
+        }
+      } catch (err) {
+        console.warn("[ConsultationChat] Error in deduplicateLocalMessages:", err);
+      }
+    };
+
+    deduplicateLocalMessages();
+    return () => {
+      isMounted = false;
+    };
+  }, [roomId]);
+
   // 1. Cross-device HTTP Polling sync (Works 100% reliably on Vercel without socket server)
   useEffect(() => {
     let isMounted = true;
@@ -190,8 +228,10 @@ export default function ConsultationChat({
               .equals(roomId)
               .and(
                 (m) =>
-                  m.text === msg.text &&
-                  Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 3000
+                  m.senderRole === msg.senderRole &&
+                  m.text.trim() === msg.text.trim() &&
+                  (m.timestamp === msg.timestamp ||
+                    Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 15000)
               )
               .first();
 
@@ -203,6 +243,8 @@ export default function ConsultationChat({
                 status: "synced",
                 timestamp: msg.timestamp,
               });
+            } else if (existing.id && existing.status === "queued") {
+              await db.chatMessages.update(existing.id, { status: "synced" });
             }
           } catch {}
         }
@@ -247,8 +289,10 @@ export default function ConsultationChat({
             .equals(roomId)
             .and(
               (m) =>
-                m.text === msg.text &&
-                Math.abs(new Date(m.timestamp).getTime() - new Date(incomingTimestamp).getTime()) < 3000
+                m.senderRole === msg.senderRole &&
+                m.text.trim() === msg.text.trim() &&
+                (m.timestamp === incomingTimestamp ||
+                  Math.abs(new Date(m.timestamp).getTime() - new Date(incomingTimestamp).getTime()) < 15000)
             )
             .first();
 
@@ -275,9 +319,12 @@ export default function ConsultationChat({
   }, [roomId, senderRole, senderName]);
 
   const handleSendMessage = async (textToSend?: string) => {
+    if (isSendingRef.current) return;
+
     const messageContent = (textToSend || inputText).trim();
     if (!messageContent) return;
 
+    isSendingRef.current = true;
     if (!textToSend) {
       setInputText("");
     }
@@ -287,34 +334,52 @@ export default function ConsultationChat({
     const status: "queued" | "synced" = networkOnline ? "synced" : "queued";
 
     try {
-      // 1. Immediately store in IndexedDB (Offline-first persistence)
-      await db.chatMessages.add({
-        roomId,
-        senderRole,
-        text: messageContent,
-        status,
-        timestamp: currentTimestamp,
-      });
+      // Prevent rapid accidental double-sends within 3 seconds
+      const recentDuplicate = await db.chatMessages
+        .where("roomId")
+        .equals(roomId)
+        .and(
+          (m) =>
+            m.senderRole === senderRole &&
+            m.text.trim() === messageContent &&
+            Math.abs(new Date(m.timestamp).getTime() - new Date(currentTimestamp).getTime()) < 3000
+        )
+        .first();
 
-      // 2. Cross-device sync to serverless API
-      if (networkOnline) {
-        await syncSendChat(roomId, senderRole, messageContent);
-      }
-
-      // 3. Socket emission fallback for local dev
-      if (networkOnline && socketRef.current) {
-        socketRef.current.emit("chat-message", {
+      if (!recentDuplicate) {
+        // 1. Immediately store in IndexedDB (Offline-first persistence)
+        await db.chatMessages.add({
           roomId,
           senderRole,
           text: messageContent,
-          status: "synced",
+          status,
           timestamp: currentTimestamp,
-          sender: senderName || (senderRole === "doctor" ? "डॉक्टर (Doctor)" : "आशा कियोस्क (ASHA)"),
-          time: new Date(currentTimestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         });
+
+        // 2. Cross-device sync to serverless API with exact client timestamp
+        if (networkOnline) {
+          await syncSendChat(roomId, senderRole, messageContent, currentTimestamp);
+        }
+
+        // 3. Socket emission fallback for local dev
+        if (networkOnline && socketRef.current) {
+          socketRef.current.emit("chat-message", {
+            roomId,
+            senderRole,
+            text: messageContent,
+            status: "synced",
+            timestamp: currentTimestamp,
+            sender: senderName || (senderRole === "doctor" ? "डॉक्टर (Doctor)" : "आशा कियोस्क (ASHA)"),
+            time: new Date(currentTimestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          });
+        }
       }
     } catch (err) {
       console.error("[ConsultationChat] Error saving or sending chat message:", err);
+    } finally {
+      setTimeout(() => {
+        isSendingRef.current = false;
+      }, 500);
     }
   };
 
