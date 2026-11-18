@@ -109,6 +109,23 @@ def create_report():
         run.font.color.rgb = RGBColor(0, 0, 0)
         return para
 
+    def add_figure(image_path, caption_text, width_inches=6.0):
+        if os.path.exists(image_path):
+            p_img = doc.add_paragraph()
+            p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_img.paragraph_format.space_before = Pt(8)
+            p_img.paragraph_format.space_after = Pt(4)
+            run_img = p_img.add_run()
+            run_img.add_picture(image_path, width=Inches(width_inches))
+            p_cap = doc.add_paragraph()
+            p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_cap.paragraph_format.space_before = Pt(2)
+            p_cap.paragraph_format.space_after = Pt(12)
+            run_cap = p_cap.add_run(caption_text)
+            run_cap.bold = True
+            run_cap.font.name = 'Times New Roman'
+            run_cap.font.size = Pt(10.5)
+
     # -------------------------------------------------------------
     # 1. TITLE PAGE / COVER PAGE
     # -------------------------------------------------------------
@@ -699,6 +716,7 @@ def create_report():
     p("1. ASHA Kiosk Client: Runs in standard mobile/tablet browsers. Houses the Dexie.js database engine, MediaStream video controllers, vernacular language provider, and Web Speech dictation.", indent=True)
     p("2. Serverless Synchronization & Media Cloud: Hosted on Vercel Edge (`/api/sync`, `/api/token`), providing real-time state synchronization, LiveKit token generation, and LiveKit Cloud SFU media routing.", indent=True)
     p("3. Specialist Doctor Workstation: A desktop-optimized hub featuring live patient queue management, audible incoming call ringing, LiveKit consultation room, and printable e-prescription generation.", indent=True)
+    add_figure("diagrams/system_architecture.png", "Figure 4.1: Tripartite System Architecture of AarogyaSangam", width_inches=6.0)
 
     add_section_heading("4.3 Data Flow and Component Interaction Models")
     p(
@@ -706,6 +724,7 @@ def create_report():
         "the local `patients` and `triagePackets` tables. When `navigator.onLine` is true, `syncRegisterPatient` dispatches the record to `/api/sync`. "
         "The Doctor Hub polls this endpoint every 2 seconds, pulling new records into its local Dexie database and updating the triage queue in real time.", indent=True
     )
+    add_figure("diagrams/offline_sync_sequence.png", "Figure 4.2: Asynchronous Store-and-Forward Patient Synchronization Sequence", width_inches=6.0)
 
     add_section_heading("4.4 Database Schema and State Transitions")
     p("Table 4.1 details the Dexie.js IndexedDB schema defined in `src/lib/db.ts`:", indent=True)
@@ -733,6 +752,7 @@ def create_report():
                 run.bold = True
                 set_cell_shading(cell, "EAEAEA")
     set_table_borders(tbl_db)
+    add_figure("diagrams/clinical_workflow.png", "Figure 4.3: 4-Stage Clinical Healthcare Lifecycle and State Transition Pipeline", width_inches=6.0)
 
     # -------------------------------------------------------------
     # CHAPTER 5: SOFTWARE REQUIREMENT SPECIFICATION (SRS)
@@ -838,6 +858,7 @@ def create_report():
         "messages are stored in IndexedDB with status `queued` and an amber pulsing clock icon. When the network returns, `useAutoSync.ts` automatically "
         "uploads all pending messages to `/api/sync` and updates their status to `synced` with green checkmarks.", indent=True
     )
+    add_figure("diagrams/teleconsult_flow.png", "Figure 6.3: Multi-Tier Resilient Teleconsultation and Call Signaling Workflow", width_inches=6.0)
 
     add_section_heading("6.5 Jan Aushadhi Generic Prescription Builder & Print View")
     p(
